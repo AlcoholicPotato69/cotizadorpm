@@ -1,0 +1,2 @@
+-- Versión 1.0-- 25/01/26
+Versión base del cotizador plaza mayor y casa de piedra

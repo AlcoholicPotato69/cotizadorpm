@@ -1,0 +1,11 @@
+admin del cotizador: 
+
+admin@cotizador.com
+admincotizador123
+
+-------usuarios prueba---------
+admin@plazamayor.com
+adminplazamayor123
+
+admin@casadepiedra.com
+admincasadepiedra123

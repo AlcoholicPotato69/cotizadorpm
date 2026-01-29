@@ -1,0 +1,19 @@
+Para realizar un backup (dumps) de la estructura de la base de datos 
+
+"npx supabase db dump --local -f backup_completo.sql"
+
+donde "--local" apunta a que se realizará la copia de la base de datos local y "-f" es el nombre del archivo que se pondrá en este caso "backup_completo.sql"
+
+Para los datos es el mismo concepto, pero con una flag adicional para únicamente realizar el backup de los datos
+la flag "--data only" implica solo los datos
+
+
+"npx supabase db dump --local --data-only -f solo_datos.sql"
+
+
+y también está el comando: 
+
+npx supabase db dump --local --role-only -f estructura_actual.sql
+
+donde "--role-only" te da solo el código de la estructura sin llenarte la pantalla con los datos de los clientes.
+

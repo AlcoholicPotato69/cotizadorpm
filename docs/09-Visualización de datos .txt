@@ -1,0 +1,28 @@
+Ver los datos:
+
+(Recomendado: TablePlus o DBeaver)
+
+
+Usando un programa como TablePlus o DBeaver, te conectas a tu base de datos local y puedes ver el código de cada tabla individualmente.
+
+Descarga e instala TablePlus (es gratuito y ligero).
+
+Crea una nueva conexión con estos datos (son los de tu Docker local):
+
+Host: 127.0.0.1 (o la IP de tu servidor)
+
+Port: 54322 (o el que tengas configurado) (El puerto que sale en docker ps para la BD)
+
+User: postgres
+
+Password: postgres
+
+Database: postgres
+
+Una vez conectado:
+
+Dale clic derecho a cualquier tabla (ej. cotizaciones).
+
+Busca una opción que diga "Open Structure" o "DDL".
+
+Ahí verás el código SQL exacto que crea esa tabla, incluyendo sus índices y relaciones.

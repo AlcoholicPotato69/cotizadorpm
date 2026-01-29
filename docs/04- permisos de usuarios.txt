@@ -1,0 +1,16 @@
+Admin (verá siempre ambos): solo pon role='admin' (el script ya fuerza allowed_tenants a ambos)
+
+-- Admin ve ambos:
+update public.profiles
+set role='admin', allowed_tenants=array['plaza_mayor','casa_de_piedra']
+where id='TU-UUID';
+
+-- User solo Plaza Mayor:
+update public.profiles
+set role='user', allowed_tenants=array['plaza_mayor']
+where id='UUID';
+
+-- User solo Casa de Piedra:
+update public.profiles
+set role='user', allowed_tenants=array['casa_de_piedra']
+where id='UUID';

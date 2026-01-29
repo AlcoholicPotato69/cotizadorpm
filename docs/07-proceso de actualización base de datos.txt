@@ -1,0 +1,72 @@
+En .gitignore se toman en cuenta estos archivos
+"node_modules/
+.env
+supabase/.branches/
+supabase/.temp/
+# Ignoramos el config local para no sobrescribir el de producción por error
+js/hub-config.js" 
+
+----------------------------------------Desarrollo local:-----------------------------------------------------
+
+Haces cambios en tu HTML, JS y en la Base de Datos (ej. agregas una tabla "promociones").
+
+Capturar cambios de BD (Migraciones): Supabase CLI tiene una herramienta mágica que detecta qué cambió en tu estructura local y crea un script SQL solo con los cambios.
+
+
+# En tu terminal local
+supabase db diff -f nueva_tabla_promociones
+Esto crea un archivo en supabase/migrations/20260127120000_nueva_tabla_promociones.sql.
+
+Importante: Este archivo SOLO contiene CREATE TABLE..., no contiene los datos de tus pruebas.
+
+Guardar cambios de Código:
+
+git add .
+git commit -m "Agregado módulo de promociones"
+git push origin main
+
+------------------------------------IMPLEMENTACIÓN A PRODUCCIÓN:-----------------------------------------------
+
+Despliegue en el Servidor (Producción)
+Ahora te conectas a tu servidor Windows/Linux.
+
+Actualizar el Código (HTML/JS): Entra a la carpeta del proyecto y baja los cambios:
+
+git pull origin main
+(Como hub-config.js está en el .gitignore, git no lo tocará y el servidor seguirá apuntando a su IP correcta).
+
+Actualizar la Base de Datos (Aplicar Migración): Aquí es donde actualizamos la estructura sin tocar los datos reales. Tienes dos opciones:
+
+Opción 1 (Automática con Docker): Si copiaste la carpeta supabase/migrations al servidor (vía git), puedes decirle a Supabase que aplique los cambios pendientes:
+
+# Si tienes supabase cli instalado en el servidor
+
+supabase migration up
+
+
+-----------------------------------OPCIÓN 2 (Manual y Segura - Recomendada):-------------------------------
+
+Abre el archivo .sql que se generó en tu PC (supabase/migrations/xxxx_nueva_tabla.sql).
+
+Copia el contenido.
+
+Entra al SQL Editor de tu Supabase de Producción (o vía TablePlus conectado a Producción).
+
+Pega y ejecuta.
+
+Resultado: Tu base de datos de producción ahora tiene la nueva tabla "promociones", pero mantiene intactos todos los clientes y cotizaciones reales que ya existían.
+
+
+
+--------------------RECOMENDACIONES-------------------------------------------------------------------------
+Nunca hagas supabase db reset en Producción: Eso borra todo y lo deja como nuevo. Solo usa migrations o ejecuta scripts SQL incrementales.
+
+Backups antes de Desplegar: Antes de correr un script SQL nuevo en producción, haz un backup rápido (dump) por si el script falla.
+
+El archivo hub-config.js:
+
+En tu PC: supabaseUrl: 'http://127.0.0.1:54321'
+
+En Servidor: supabaseUrl: 'http://192.168.1.50:55555'
+
+Al tenerlo en .gitignore, nunca se sobrescribirán entre ellos por accidente.

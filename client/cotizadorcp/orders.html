@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizaciones - Casa de Piedra</title>
+    
+    <script src="../../assets/libs/js/tailwindcss.js"></script>
+    <link rel="stylesheet" href="../../assets/libs/css/all.min.css">
+    
+    <script src="../js/hub-config.js"></script>
+    <script src="../supabase.js"></script>
+    <script src="../../assets/libs/js/html2pdf.js"></script>
+    <script src="../../assets/libs/js/chart.js"></script>
+    
+    <script>tailwind.config = { theme: { extend: { colors: { brand: { red: '#deac07', dark: '#1a1a1a', gray: '#f3f4f6' } } } } }</script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f3f4f6; } 
+        .hidden { display: none !important; } 
+        .fade-in { animation: fadeIn 0.3s ease-out; } 
+        .custom-scroll::-webkit-scrollbar { width: 6px; } 
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; } 
+        .custom-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; } 
+        input:read-only { background-color: #f9fafb; color: #6b7280; cursor: default; } 
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input:disabled, label.disabled, select:disabled, textarea:disabled { opacity: 0.6; cursor: not-allowed; background-color: #f3f4f6; }
+        
+        /* PDF PREVIEW STYLES */
+        #preview-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px;
+            background-color: #525659;
+        }
+        #pdf-content {
+            width: 816px !important; 
+            min-height: 1056px !important;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            padding: 0 !important; 
+        }
+    </style>
+</head>
+<body class="bg-brand-gray text-gray-800 flex flex-col min-h-screen relative">
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[70] flex flex-col gap-2"></div>
+    
+    <script>const TENANT_SCHEMA='finanzas_casadepiedra';</script>
+  <script src="../js/layout.js"></script>
+    
+    <nav class="bg-brand-red shadow-lg sticky top-16 z-40 border-t border-red-800">
+        <div class="container mx-auto px-4 flex h-14 items-center text-white gap-2 overflow-x-auto no-scrollbar">
+            <a href="catalog.html" class="px-4 py-1.5 rounded-full font-bold text-xs uppercase hover:bg-white/20 transition whitespace-nowrap"><i class="fa-solid fa-store"></i> Catálogo</a>
+            <a href="agenda.html" class="px-4 py-1.5 rounded-full font-bold text-xs uppercase hover:bg-white/20 transition whitespace-nowrap"><i class="fa-solid fa-calendar-days"></i> Agenda</a>
+            <a href="orders.html" class="bg-white/20 shadow-inner px-4 py-1.5 rounded-full font-bold text-xs uppercase flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-file-invoice-dollar"></i> Cotizaciones</a>
+            <a href="contracts.html" class="px-4 py-1.5 rounded-full font-bold text-xs uppercase hover:bg-white/20 transition whitespace-nowrap flex items-center gap-2"><i class="fa-solid fa-file-signature"></i> Contratos</a>
+            <a href="invoices.html" class="px-4 py-1.5 rounded-full font-bold text-xs uppercase hover:bg-white/20 transition whitespace-nowrap"><i class="fa-solid fa-file-invoice"></i> Facturas</a>            <a href="clientes.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 transition whitespace-nowrap flex items-center gap-2"><i class="fa-solid fa-users"></i> Clientes</a>
+
+            <a href="reports.html" class="px-4 py-1.5 rounded-full font-bold text-xs uppercase hover:bg-white/20 transition whitespace-nowrap"><i class="fa-solid fa-chart-pie"></i> Reportes</a>
+            <div class="flex-grow"></div>
+</div>
+    </nav>
+
+    <main class="flex-grow container mx-auto px-4 md:px-6 py-6 md:py-8 max-w-7xl animate-enter">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 min-h-[500px] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center bg-gray-50 gap-4 shrink-0">
+                <h2 class="font-black text-gray-700 uppercase text-sm tracking-wide whitespace-nowrap flex items-center gap-2"><i class="fa-solid fa-list-ul text-brand-red"></i> Gestión de Cotizaciones</h2>
+                <div class="flex flex-col md:flex-row w-full md:w-auto gap-2 items-center">
+                    <div class="relative w-full md:w-72">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fa-solid fa-search text-xs"></i></span>
+                        <input type="text" id="search-orders" placeholder="Buscar por cliente..." class="w-full py-2.5 pl-9 pr-4 text-xs font-bold border border-gray-200 rounded-full focus:border-brand-red outline-none shadow-sm transition bg-white">
+                    </div>
+                    <button onclick="window.loadOrders()" class="text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition p-2.5 rounded-full w-full md:w-auto"><i class="fa-solid fa-rotate"></i></button>
+                </div>
+            </div>
+            <div class="flex-grow overflow-x-auto custom-scroll">
+                <table class="w-full text-sm text-left min-w-[800px]">
+                    <thead class="bg-gray-50 text-gray-400 font-black uppercase text-[10px] tracking-wider sticky top-0 border-b border-gray-100">
+                        <tr>
+                            <th class="p-4 pl-6">Folio / ID</th>
+                            <th class="p-4">Cliente</th>
+                            <th class="p-4">Detalle</th>
+                            <th class="p-4 text-right">Monto</th>
+                            <th class="p-4 text-center">Estatus</th>
+                            <th class="p-4 text-center">Expediente</th>
+                            <th class="p-4 text-center pr-6">Gestionar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="docs-modal" class="fixed inset-0 bg-slate-900/90 z-[80] hidden flex items-center justify-center p-4 backdrop-blur-sm animate-enter">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-gray-900 p-4 flex justify-between items-center text-white shrink-0">
+                <h3 class="font-bold text-sm uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-folder-open text-brand-red"></i> Expediente Digital</h3>
+                <button onclick="window.closeModal('docs-modal')" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-times text-lg"></i></button>
+            </div>
+            <div class="p-5 bg-gray-50 border-b border-gray-100 shrink-0">
+                <h2 id="doc-client" class="font-black text-lg text-gray-800 leading-tight mb-1 truncate">Cliente</h2>
+                <div class="flex items-center gap-2 text-xs text-gray-500 font-mono mb-1">
+                    <span id="doc-folio" class="bg-white border px-1.5 rounded font-bold text-brand-dark">ORD-000</span>
+                    <span id="doc-space" class="truncate max-w-[200px]">Espacio</span>
+                </div>
+                <p id="doc-dates" class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">--</p>
+            </div>
+            <div id="docs-list" class="p-4 overflow-y-auto custom-scroll space-y-2 flex-grow bg-white">
+                </div>
+            <div class="p-3 bg-gray-50 border-t border-gray-100 text-center">
+                <button onclick="window.closeModal('docs-modal')" class="text-xs font-bold text-gray-500 hover:text-gray-800 uppercase">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="order-edit-modal" class="fixed inset-0 bg-slate-900/90 z-[70] hidden flex items-center justify-center p-2 md:p-4 backdrop-blur-sm animate-enter">
+        <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+            <div class="bg-brand-dark p-4 md:p-5 flex justify-between items-center text-white shrink-0">
+                <div>
+                    <h3 class="font-bold text-base md:text-lg flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-brand-red"></i> Gestión del Proceso</h3>
+                    <p class="text-[9px] text-gray-400 uppercase tracking-widest ml-6 md:ml-7 hidden sm:block">Cotización <i class="fa-solid fa-arrow-right mx-1"></i> Orden de Compra</p>
+                </div>
+                <button onclick="window.closeModal('order-edit-modal')" class="text-white/50 hover:text-white transition w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"><i class="fa-solid fa-times text-lg"></i></button>
+            </div>
+            
+            <div class="p-4 md:p-8 overflow-y-auto custom-scroll space-y-6 bg-slate-50">
+                <input type="hidden" id="oed-id">
+                <input type="hidden" id="oed-order-num"> 
+                
+                <div class="bg-white p-5 md:p-6 rounded-xl border border-gray-200 shadow-sm relative group hover:border-brand-red/30 transition">
+                    <span class="absolute -top-3 left-4 bg-gray-700 text-white text-[10px] font-bold px-3 py-1 rounded uppercase tracking-wider shadow-sm">1. Detalle Económico</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-2">
+<div class="md:col-span-4">
+    <label class="block text-xs font-bold mb-1 text-gray-700 uppercase">Cliente (perfil)</label>
+    <select id="oed-client-profile" class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:border-brand-red transition">
+        <option value="">— Sin perfil —</option>
+    </select>
+    <input type="hidden" id="oed-client-id">
+    <p class="text-[11px] mt-1 text-gray-500">Selecciona un cliente guardado para autocompletar (opcional).</p>
+</div>
+
+                        <div class="md:col-span-1"><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cliente</label><input id="oed-client" class="w-full bg-slate-50 border border-gray-200 rounded-lg p-2.5 text-sm font-bold text-gray-700 outline-none focus:border-brand-red focus:bg-white transition"></div>
+                        <div class="md:col-span-1"><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">RFC</label><input id="fiscal-rfc-re" class="w-full bg-slate-50 border border-gray-200 rounded-lg p-2.5 text-sm font-bold text-gray-700 outline-none focus:border-brand-red focus:bg-white transition uppercase"></div>
+                        <div class="md:col-span-1"><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Teléfono</label><input id="oed-phone" class="w-full bg-slate-50 border border-gray-200 rounded-lg p-2.5 text-sm font-bold text-gray-700 outline-none focus:border-brand-red focus:bg-white transition"></div>
+                        <div class="md:col-span-1"><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email</label><input id="oed-email" class="w-full bg-slate-50 border border-gray-200 rounded-lg p-2.5 text-sm font-bold text-gray-700 outline-none focus:border-brand-red focus:bg-white transition"></div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-4 border-b border-gray-100 pb-6">
+                        <div><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Estado</label><select id="oed-status" class="w-full font-bold text-xs uppercase p-2.5 rounded-lg border-2 border-gray-200 outline-none cursor-pointer focus:border-brand-red bg-white"><option value="pendiente">⏳ Pendiente</option><option value="aprobada">✅ Aprobada</option><option value="rechazada">❌ Rechazada</option><option value="finalizada" disabled class="bg-gray-100 text-gray-400">🏁 Finalizada</option></select></div>
+                        <div><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Espacio</label><select id="oed-space" class="w-full bg-slate-50 border border-gray-200 rounded-lg p-2.5 text-xs font-bold text-gray-700 outline-none focus:border-brand-red cursor-pointer"></select><div id="oed-avail-msg" class="text-[10px] font-bold mt-1 h-4"></div></div>
+                        <div><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Inicio</label><input type="date" id="oed-start" class="w-full border border-gray-200 bg-white rounded-lg p-2 text-xs font-bold focus:border-brand-red outline-none"></div>
+                        <div><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Fin</label><input type="date" id="oed-end" class="w-full border border-gray-200 bg-white rounded-lg p-2 text-xs font-bold focus:border-brand-red outline-none"></div>
+                    </div>
+                    <div class="mt-4"><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Impuestos</label><div id="oed-taxes-list" class="bg-slate-50 rounded-lg border border-slate-200 p-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"></div></div>
+                    <div class="mt-6"><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Conceptos</label><div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[400px]"><thead class="bg-slate-100 text-[9px] font-bold text-gray-500 uppercase"><tr><th class="p-3 w-2/3">Servicio</th><th class="p-3 w-1/4 text-right">Importe</th><th class="p-3 w-12 text-center text-red-500">X</th></tr></thead><tbody id="concepts-list" class="text-xs divide-y divide-slate-100"></tbody><tfoot id="concept-controls" class="bg-white border-t border-slate-200"><tr><td class="p-2"><select id="new-concept-select" class="w-full border-b border-gray-200 text-xs p-1 outline-none font-bold text-gray-700"><option value="">-- Agregar --</option></select></td><td class="p-2"><input id="new-concept-amount" type="number" placeholder="0.00" class="w-full border-b border-gray-200 text-xs p-1 outline-none text-right"></td><td class="p-2 text-center"><button onclick="window.addConceptRow()" class="bg-brand-dark text-white rounded w-6 h-6 flex items-center justify-center hover:bg-black"><i class="fa-solid fa-plus text-[10px]"></i></button></td></tr></tfoot></table></div></div></div>
+                    <div class="mt-6 flex flex-col md:flex-row justify-end items-end gap-6">
+                        <div class="w-full md:w-72 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <label class="block text-[9px] font-bold text-gray-400 uppercase mb-2">Ajuste</label>
+                            <div class="flex gap-2 mb-2"><select id="oed-adj-type" onchange="window.recalcTotal()" class="flex-grow text-[10px] border rounded-lg p-1.5 outline-none font-bold bg-white"><option value="ninguno">Sin Ajuste</option><option value="descuento">Descuento</option><option value="aumento">Aumento</option></select><select id="oed-adj-unit" onchange="window.recalcTotal()" class="w-20 text-[10px] border rounded-lg p-1.5 outline-none font-bold bg-white"><option value="fixed">$</option><option value="percent">%</option></select></div>
+                            <input id="oed-adj-val" type="number" value="0" oninput="window.recalcTotal()" class="w-full pl-2 pr-2 py-1.5 text-xs font-bold border rounded-lg outline-none text-right">
+                        </div>
+                        <div class="text-right space-y-1 w-full md:w-auto"><div class="flex justify-between gap-4"><span class="text-xs text-gray-500">Subtotal:</span><span id="lbl-subtotal" class="font-bold text-gray-800">$0.00</span></div><div class="flex justify-between gap-4"><span class="text-xs text-gray-500">Ajuste:</span><span id="lbl-adjustment" class="font-bold text-gray-800">$0.00</span></div><div id="oed-tax-summary-display" class="flex flex-col gap-1 border-t border-dashed border-gray-200 pt-1 mt-1"></div><div class="border-t-2 border-gray-100 pt-3 mt-2"><p class="text-[10px] font-black text-brand-red uppercase tracking-wider">Precio Final</p><input id="oed-price" readonly class="text-3xl font-black text-gray-800 text-right w-full bg-transparent outline-none border-none cursor-default p-0" value="0.00"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-5 border-t border-gray-100 shrink-0 flex justify-end gap-3">
+                <button onclick="window.closeModal('order-edit-modal')" class="text-gray-500 hover:text-gray-800 font-bold text-xs px-4">Cerrar</button>
+                <button id="btn-save-progress" onclick="window.attemptSaveOrder()" class="bg-white text-brand-dark border-2 border-brand-dark px-6 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition text-xs uppercase tracking-wider flex items-center justify-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="generic-confirm-modal" class="fixed inset-0 bg-black/80 z-[110] hidden flex items-center justify-center p-4 backdrop-blur-sm animate-enter">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 text-center">
+            <h3 class="font-bold text-lg mb-2 text-gray-800" id="confirm-title">¿Estás seguro?</h3>
+            <div class="flex justify-center gap-3 mt-6">
+                <button onclick="window.closeModal('generic-confirm-modal')" class="text-gray-500 hover:text-gray-800 text-xs font-bold px-4">Cancelar</button>
+                <button id="btn-confirm-action" class="bg-brand-red text-white px-6 py-2 rounded-xl font-bold text-xs uppercase shadow-lg hover:bg-red-700 transition">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="preview-modal" class="fixed inset-0 bg-slate-900/90 z-[80] hidden flex items-center justify-center p-2 md:p-4 backdrop-blur-sm animate-enter">
+        <div class="bg-white w-full max-w-4xl h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="bg-gray-900 p-4 flex justify-between items-center text-white shrink-0">
+                <div class="flex items-center gap-4">
+                    <h3 class="font-bold text-sm uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-eye text-brand-red"></i> Vista Previa</h3>
+                    <div id="pdf-admin-data" class="hidden text-xs bg-gray-800 px-3 py-1 rounded border border-gray-700"><span class="text-gray-400 mr-2">Folio:</span><span class="font-mono font-bold" id="prev-order-num">---</span></div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="window.closeModal('preview-modal')" class="text-gray-400 hover:text-white text-xs uppercase font-bold px-3">Cerrar</button>
+                    <button id="btn-download-preview" class="bg-brand-red hover:bg-red-600 text-white px-5 py-2 rounded-full text-xs font-bold uppercase shadow-lg transition flex items-center gap-2"><i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Descargar</span></button>
+                </div>
+            </div>
+            <div id="preview-container" class="flex-grow bg-gray-200 overflow-y-auto custom-scroll flex justify-center items-start p-8">
+                <div id="pdf-content" class="bg-white shadow-2xl relative text-gray-800 hidden"></div>
+                <embed id="doc-preview" type="application/pdf" width="100%" height="100%" class="hidden"></embed>
+            </div>
+        </div>
+    </div>
+
+    <script src="orders.js"></script>
+</body>
+</html>

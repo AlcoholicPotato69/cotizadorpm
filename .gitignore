@@ -1,0 +1,16 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+.env
+
+# Supabase local
+server/.supabase/
+server/supabase/.temp/
+supabase/.branches/
+supabase/.temp/
+
+# Ignoramos el config local para no sobrescribir el de producción por error
+js/hub-config.js
