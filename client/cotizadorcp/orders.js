@@ -62,25 +62,18 @@ async function loadClientProfilesForOrderModal() {
     }
 }
 
-// MÓDULO DE COTIZACIONES - REFACTORIZADO (SNAPSHOT & DATA INTEGRITY)
+// MÓDULO DE COTIZACIONES - REFACTORIZADO
 // =========================================================================
-
-// -------------------------------------------------------------------------
-// 1. CONFIGURACIÓN
-// -------------------------------------------------------------------------
 
 const _p = (window.location.pathname || '') + ' ' + (window.location.href || '');
 const _isCP = /\/cotizadorcp(\/|$)/.test(window.location.pathname || '') || _p.includes('cotizadorcp');
 const COMPANY_LOGO_URL = _isCP
   ? ((window.HUB_CONFIG && (window.HUB_CONFIG.companyLogoUrlCP || window.HUB_CONFIG.cpLogoUrl)) || 'http://127.0.0.1:54321/storage/v1/object/public/Espacios/logocp.png')
   : ((window.HUB_CONFIG && window.HUB_CONFIG.companyLogoUrl) || 'http://127.0.0.1:54321/storage/v1/object/public/Espacios/logo.png');
-/* -------------------------------------------------------------------------
- * 0. CONEXIÓN A BASE DE DATOS (ÚNICO LUGAR A CAMBIAR)
- * ------------------------------------------------------------------------- */
+
 const SB_URL = (window.HUB_CONFIG && window.HUB_CONFIG.supabaseUrl) || 'http://127.0.0.1:54321';
 const SB_KEY = (window.HUB_CONFIG && window.HUB_CONFIG.supabaseAnonKey) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 
-// (Opcional) Esquema finanzas configurable
 const __p = window.location.pathname || '';
 const __isCP = /\/cotizadorcp(\/|$)/.test(__p) || (window.location.href || '').includes('cotizadorcp');
 const FIN_SCHEMA = __isCP ? 'finanzas_casadepiedra' : ((window.HUB_CONFIG && window.HUB_CONFIG.finanzasSchema) || 'finanzas');
@@ -111,6 +104,56 @@ window.parseIds = function(v){
     return []; 
 };
 
+// HELPER DUPLICADO DE CATALOG.JS (CÁLCULO CON PERSONAS)
+function calculateDayByDayTotal(space, startStr, endStr, guests) {
+    if (!startStr || !endStr) return { total: 0, details: [] };
+    
+    let rules = [];
+    if (space.precios_por_dia) {
+        if (Array.isArray(space.precios_por_dia)) rules = space.precios_por_dia;
+        else rules = [{ min: 0, max: 999999, precios: space.precios_por_dia }];
+    } else {
+        rules = [{ min: 0, max: 999999, precios: {lunes: space.precio_base||0, martes:space.precio_base||0, miercoles:space.precio_base||0, jueves:space.precio_base||0, viernes:space.precio_base||0, sabado:space.precio_base||0, domingo:space.precio_base||0} }];
+    }
+
+    const guestCount = parseInt(guests) || 1;
+    let activeRule = rules.find(r => guestCount >= r.min && guestCount <= r.max);
+    if (!activeRule) {
+        if (guestCount > 0) {
+            const maxRule = rules.reduce((prev, current) => (prev.max > current.max) ? prev : current);
+            activeRule = maxRule;
+        } else {
+            activeRule = rules[0];
+        }
+    }
+    
+    const prices = activeRule ? (activeRule.precios || {}) : {};
+
+    let total = 0;
+    let details = [];
+    const start = new Date(startStr + 'T00:00:00'); 
+    const end = new Date(endStr + 'T00:00:00');
+    
+    const keys = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+    const names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dayIdx = d.getDay();
+        const key = keys[dayIdx];
+        const price = parseFloat(prices[key] || 0);
+        
+        total += price;
+        details.push({
+            date: d.toLocaleDateString('es-MX'),
+            dayName: names[dayIdx],
+            price: price,
+            ruleMin: activeRule?.min,
+            ruleMax: activeRule?.max
+        });
+    }
+    return { total, details };
+}
+
 window.openModal = (id) => { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); };
 window.closeModal = (id) => { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); };
 
@@ -137,57 +180,27 @@ window.openConfirm = function(msg, callback, isWarning = false) {
     window.openModal('generic-confirm-modal'); 
 };
 
-// --- MODIFICADO: ELIMINACIÓN RECURSIVA (BD + STORAGE) ---
 window.askDeleteOrder = function(id, e) { 
     if(e) e.stopPropagation(); 
-    
     window.openConfirm("¿Eliminar cotización y TODOS sus archivos? Esta acción es irreversible.", async () => { 
         try {
-            // 1. Feedback visual
             window.showToast("Eliminando archivos asociados...", "info");
-
-            // 2. Limpieza de Storage: Listar archivos en la carpeta del ID
-            const { data: files, error: listError } = await window.globalSupabase
-                .storage
-                .from('documentos')
-                .list(`${id}`, { limit: 100, offset: 0, sortBy: { column: 'name', order: 'asc' } });
-
-            if (files && files.length > 0) {
-                // Borrar archivos raíz (PDF cotización, OC, Contrato)
-                const filesToRemove = files.map(x => `${id}/${x.name}`);
-                const { error: removeError } = await window.globalSupabase
-                    .storage
-                    .from('documentos')
-                    .remove(filesToRemove);
-                
-                if (removeError) console.error("Error borrando archivos raíz:", removeError);
-            }
-
-            // 3. Limpieza de Subcarpeta 'recibos' (si existe)
-            const { data: receiptFiles } = await window.globalSupabase.storage.from('documentos-cp').list(`${id}/recibos`);
-            if (receiptFiles && receiptFiles.length > 0) {
-                const receiptsToRemove = receiptFiles.map(x => `${id}/recibos/${x.name}`);
-                await window.globalSupabase.storage.from('documentos-cp').remove(receiptsToRemove);
-            }
-
-            // 4. Eliminar el registro de la Base de Datos
-            const { error: dbError } = await window.finSupabase.from('cotizaciones').delete().eq('id', id);
+            const { data: files } = await window.globalSupabase.storage.from('documentos').list(`${id}`, { limit: 100 });
+            if (files && files.length > 0) { await window.globalSupabase.storage.from('documentos').remove(files.map(x => `${id}/${x.name}`)); }
             
-            if (dbError) throw dbError;
+            const { data: receiptFiles } = await window.globalSupabase.storage.from('documentos-cp').list(`${id}/recibos`);
+            if (receiptFiles && receiptFiles.length > 0) { await window.globalSupabase.storage.from('documentos-cp').remove(receiptFiles.map(x => `${id}/recibos/${x.name}`)); }
+            
+            await window.finSupabase.from('cotizaciones').delete().eq('id', id);
 
             window.showToast("Cotización y archivos eliminados", "success"); 
             window.loadOrders(); 
-
         } catch (err) {
             console.error(err);
             window.showToast("Error al eliminar: " + err.message, "error");
         }
     }, true); 
 };
-
-// -------------------------------------------------------------------------
-// 3. INICIALIZACIÓN
-// -------------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (window.supabase) {
@@ -198,11 +211,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session } } = await window.globalSupabase.auth.getSession();
     if (!session) return;
     
-    // Listeners
     document.getElementById('btn-confirm-action')?.addEventListener('click', () => { if(confirmCallback) confirmCallback(); window.closeModal('generic-confirm-modal'); });
     document.getElementById('search-orders')?.addEventListener('input', (e) => filterOrders(e.target.value));
 
-    // Listeners Modal Edición
+    // Listeners
     document.getElementById('oed-start')?.addEventListener('change', function() { document.getElementById('oed-end').min = this.value; window.recalcTotal(); }); 
     document.getElementById('oed-end')?.addEventListener('change', () => window.recalcTotal()); 
     document.getElementById('oed-space')?.addEventListener('change', () => { window.recalcTotal(); const s = allSpaces.find(x => x.id == document.getElementById('oed-space').value); if(s) window.renderTaxesForSpace(s); });
@@ -212,7 +224,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(c) document.getElementById('new-concept-amount').value = c.precio_sugerido; 
     });
     
-    // Carga de Datos
     await Promise.all([loadTaxes(), loadSpaces(), loadConcepts()]);
     await window.loadOrders();
 });
@@ -227,39 +238,25 @@ window.loadOrders = async function() {
     renderOrdersTable(allOrders); 
 };
 
-// -------------------------------------------------------------------------
-// 4. RENDERIZADO DE TABLA (CON LÓGICA DE FALTANTES)
-// -------------------------------------------------------------------------
-
 function renderOrdersTable(data) {
     const t = document.getElementById('orders-table'); 
     if(!t) return;
     t.innerHTML = ''; 
-    
     if(!data.length) { t.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400">Sin registros.</td></tr>'; return; }
     
     data.forEach(o => {
-        let sColor = 'bg-gray-100 text-gray-600', sText = 'Pendiente';
-        let missingIcons = []; // Array para iconos de faltantes
-
+        let sColor = 'bg-gray-100 text-gray-600', sText = 'Pendiente', missingIcons = []; 
         if(o.status === 'aprobada') { 
-            sColor = 'bg-blue-100 text-blue-700'; 
-            sText = 'Aprobada'; 
-            
-            // Lógica visual de faltantes
+            sColor = 'bg-blue-100 text-blue-700'; sText = 'Aprobada'; 
             if (!o.contrato_url && !o.numero_contrato) missingIcons.push('<i class="fa-solid fa-file-signature" title="Falta Contrato"></i>');
             if (!o.factura_xml_url) missingIcons.push('<i class="fa-solid fa-file-invoice" title="Falta Factura"></i>');
             if (!o.historial_pagos || o.historial_pagos.length === 0) missingIcons.push('<i class="fa-solid fa-money-bill-wave" title="Falta Pago"></i>');
         }
-        
         if(o.status === 'finalizada') { sColor = 'bg-green-100 text-green-700 border border-green-200'; sText = 'Finalizada'; }
         if(o.status === 'rechazada') { sColor = 'bg-red-50 text-red-600'; sText = 'Rechazada'; }
         
-        // Construimos el HTML de alertas si hay faltantes
         let alertsHTML = '';
-        if (missingIcons.length > 0 && o.status === 'aprobada') {
-            alertsHTML = `<div class="flex gap-2 justify-center mt-1.5 text-[10px] text-red-400">${missingIcons.join('')}</div>`;
-        }
+        if (missingIcons.length > 0 && o.status === 'aprobada') alertsHTML = `<div class="flex gap-2 justify-center mt-1.5 text-[10px] text-red-400">${missingIcons.join('')}</div>`;
 
         const tr = document.createElement('tr');
         tr.className = "border-b hover:bg-gray-50 transition group cursor-pointer";
@@ -270,15 +267,8 @@ function renderOrdersTable(data) {
             <td class="p-4 font-bold text-xs text-gray-700">${o.cliente_nombre}</td>
             <td class="p-4 text-xs"><span class="font-bold block">${o.espacio_nombre}</span><span class="text-gray-500 font-mono">${window.safeFormatDate(o.fecha_inicio)}</span></td>
             <td class="p-4 text-right font-mono font-bold text-xs">${new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(o.precio_final)}</td>
-            <td class="p-4 text-center">
-                <span class="${sColor} px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider">${sText}</span>
-                ${alertsHTML}
-            </td>
-            <td class="p-4 text-center">
-                <button onclick="event.stopPropagation(); window.openDocsModal('${o.id}')" class="bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-brand-dark px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-2 mx-auto">
-                    <i class="fa-solid fa-folder-open text-brand-red"></i> Expediente
-                </button>
-            </td>
+            <td class="p-4 text-center"><span class="${sColor} px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider">${sText}</span>${alertsHTML}</td>
+            <td class="p-4 text-center"><button onclick="event.stopPropagation(); window.openDocsModal('${o.id}')" class="bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-brand-dark px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-2 mx-auto"><i class="fa-solid fa-folder-open text-brand-red"></i> Expediente</button></td>
             <td class="p-4 text-center"><button onclick="window.askDeleteOrder('${o.id}', event)" class="text-gray-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button></td>
         `;
         t.appendChild(tr);
@@ -287,29 +277,15 @@ function renderOrdersTable(data) {
 
 function filterOrders(term) { renderOrdersTable(allOrders.filter(o => o.cliente_nombre.toLowerCase().includes(term.toLowerCase()))); }
 
-// -------------------------------------------------------------------------
-// 5. MODAL EDICIÓN Y CÁLCULOS
-// -------------------------------------------------------------------------
-
 window.openOrderEditModal = async function(id) { 
-    const order = allOrders.find(o => o.id === id); 
-    if (!order) return;
-
+    const order = allOrders.find(o => o.id === id); if (!order) return;
     await loadClientProfilesForOrderModal();
     
-    // =========================================================
-    // FIX: CARGA ROBUSTA DE CONCEPTOS (Corrección Solicitada)
-    // =========================================================
     currentConcepts = [];
     if (order.conceptos_adicionales) {
-        if (typeof order.conceptos_adicionales === 'string') {
-            try { currentConcepts = JSON.parse(order.conceptos_adicionales); } catch(e) { console.error("Error parsing JSON concepts", e); }
-        } else if (Array.isArray(order.conceptos_adicionales)) {
-            currentConcepts = order.conceptos_adicionales;
-        }
+        if (typeof order.conceptos_adicionales === 'string') try { currentConcepts = JSON.parse(order.conceptos_adicionales); } catch(e){}
+        else if (Array.isArray(order.conceptos_adicionales)) currentConcepts = order.conceptos_adicionales;
     }
-    // Aseguramos que sea un array válido
-    if(!Array.isArray(currentConcepts)) currentConcepts = [];
     
     currentPreviewOrder = order;
 
@@ -317,7 +293,6 @@ window.openOrderEditModal = async function(id) {
     document.getElementById('oed-client').value = order.cliente_nombre || ''; 
     document.getElementById('oed-status').value = order.status; 
     
-    // Status Lock
     const statusSelect = document.getElementById('oed-status');
     const currentLevel = STATUS_LEVEL[order.status] || 0;
     Array.from(statusSelect.options).forEach(opt => opt.disabled = (STATUS_LEVEL[opt.value] || 0) < currentLevel);
@@ -325,7 +300,8 @@ window.openOrderEditModal = async function(id) {
     document.getElementById('oed-phone').value = order.cliente_contacto || '';
     document.getElementById('oed-email').value = order.cliente_email || '';
     document.getElementById('fiscal-rfc-re').value = order.cliente_rfc || '';
-    // Perfil de cliente (si existe)
+    document.getElementById('oed-guests').value = order.personas || 1; // CARGAR PERSONAS
+
     const selCli = document.getElementById('oed-client-profile');
     const hidCli = document.getElementById('oed-client-id');
     if (selCli) selCli.value = '';
@@ -334,18 +310,7 @@ window.openOrderEditModal = async function(id) {
     if (order.cliente_id) {
         if (selCli) selCli.value = order.cliente_id;
         if (hidCli) hidCli.value = order.cliente_id;
-
-        // Si no está en cache, intentamos recargar lista
-        if (!orderClientProfilesById[order.cliente_id]) {
-            await loadClientProfilesForOrderModal();
-        }
-        const c = orderClientProfilesById[order.cliente_id];
-        if (c) {
-            document.getElementById('oed-client').value = c.nombre_completo || (order.cliente_nombre || '');
-            document.getElementById('oed-phone').value = (c.telefono || order.cliente_contacto || '');
-            document.getElementById('oed-email').value = (c.correo || order.cliente_email || '');
-            document.getElementById('fiscal-rfc-re').value = (c.rfc || order.cliente_rfc || '');
-        }
+        if (!orderClientProfilesById[order.cliente_id]) await loadClientProfilesForOrderModal();
     }
 
     document.getElementById('oed-start').value = order.fecha_inicio; 
@@ -360,20 +325,16 @@ window.openOrderEditModal = async function(id) {
         document.getElementById('oed-adj-unit').value = order.ajuste_es_porcentaje ? 'percent' : 'fixed'; 
     }
     
-    // Si está aprobada o finalizada, bloqueamos edición (Solo lectura)
     const isLocked = ['aprobada', 'finalizada'].includes(order.status);
-    const inputs = document.querySelectorAll('#order-edit-modal input, #order-edit-modal select');
-    inputs.forEach(i => { if(i.id !== 'btn-save-progress' && i.id !== 'oed-status') i.disabled = isLocked; });
+    document.querySelectorAll('#order-edit-modal input, #order-edit-modal select').forEach(i => { if(i.id !== 'btn-save-progress' && i.id !== 'oed-status') i.disabled = isLocked; });
     
     const spaceObj = allSpaces.find(s => s.id === order.espacio_id);
     if(spaceObj) window.renderTaxesForSpace(spaceObj, order.desglose_precios?.impuestos_detalle);
     
-    // Populate dropdown de conceptos
     const conceptSel = document.getElementById('new-concept-select');
     conceptSel.innerHTML = '<option value="">-- Agregar --</option>';
     catalogConcepts.forEach(c => conceptSel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
 
-    // Renderizamos inmediatamente para que se vea la lista
     window.renderConceptsList(); 
     window.recalcTotal(); 
     window.openModal('order-edit-modal');
@@ -388,7 +349,6 @@ window.renderTaxesForSpace = function(spaceObj, activeTaxIds = null) {
     
     dbTaxes.forEach(t => {
         let isChecked = activeTaxIds ? activeTaxIds.includes(t.id) : defaultTaxIds.includes(t.id);
-        const isDefault = defaultTaxIds.includes(t.id);
         container.innerHTML += `<label class="flex items-center gap-1.5 cursor-pointer ${isLocked ? 'opacity-70' : ''}"><input type="checkbox" value="${t.id}" class="oed-tax-check accent-brand-red w-3 h-3" ${isChecked ? 'checked' : ''} ${isLocked ? 'disabled' : ''} onchange="window.recalcTotal()"><span class="text-[10px] font-bold uppercase text-gray-700">${t.nombre}</span></label>`;
     });
 };
@@ -405,7 +365,6 @@ window.renderConceptsList = function() {
     }
 
     currentConcepts.forEach((c, idx) => {
-        // Manejamos 'amount' o 'value' por compatibilidad con datos legacy
         const val = parseFloat(c.amount || c.value || 0);
         const desc = c.description || c.concepto || c.nombre || 'Concepto sin nombre';
         const btn = isLocked ? '' : `<button onclick="window.removeConceptRow(${idx})" class="text-gray-300 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>`;
@@ -416,13 +375,21 @@ window.renderConceptsList = function() {
 window.recalcTotal = function() { 
     const spaceId = document.getElementById('oed-space').value; 
     const spaceObj = allSpaces.find(s => s.id == spaceId); 
-    let base = spaceObj ? parseFloat(spaceObj.precio_base) : 0; 
+    const sDate = document.getElementById('oed-start').value;
+    const eDate = document.getElementById('oed-end').value;
+    const guests = document.getElementById('oed-guests').value; // LEER INPUT
+
+    let base = 0;
+    if (spaceObj && sDate && eDate) {
+        base = calculateDayByDayTotal(spaceObj, sDate, eDate, guests).total; // PASAR GUESTS
+    } else if (spaceObj) {
+        base = parseFloat(spaceObj.precio_base);
+    }
     
     let concepts = 0;
     (currentConcepts || []).forEach(c => { concepts += parseFloat(c.amount || c.value || 0); });
     
     let sub = base + concepts;
-    
     const adjType = document.getElementById('oed-adj-type').value; 
     const adjVal = parseFloat(document.getElementById('oed-adj-val').value) || 0; 
     const isPercent = document.getElementById('oed-adj-unit').value === 'percent';
@@ -470,7 +437,6 @@ window.addConceptRow = function() {
     const amount = parseFloat(document.getElementById('new-concept-amount').value);
     if (!id || isNaN(amount) || amount === 0) return;
     const c = catalogConcepts.find(x => x.id == id);
-    // Standardized structure: description & amount
     currentConcepts.push({ description: c.nombre, amount: amount, value: amount, unit: 'fixed', type: 'aumento' });
     document.getElementById('new-concept-select').value = "";
     document.getElementById('new-concept-amount').value = "";
@@ -484,11 +450,6 @@ window.removeConceptRow = function(index) {
     window.recalcTotal();
 };
 
-// -------------------------------------------------------------------------
-// 6. GUARDADO, APROBACIÓN Y SNAPSHOTS (NUEVA LÓGICA)
-// -------------------------------------------------------------------------
-
-// Paso 1: Intentar Guardar - Detecta si es una aprobación
 window.attemptSaveOrder = function() {
     const newStatus = document.getElementById('oed-status').value;
     const currentLevel = STATUS_LEVEL[currentPreviewOrder.status] || 0;
@@ -497,7 +458,6 @@ window.attemptSaveOrder = function() {
     if (newLevel < currentLevel) return window.showToast("No puedes regresar a un estado anterior.", "error");
 
     if (newStatus === 'aprobada' && currentPreviewOrder.status !== 'aprobada') {
-        // Validaciones estrictas antes de aprobar
         const missing = [];
         if(!document.getElementById('oed-client').value) missing.push("Nombre Cliente");
         if(!document.getElementById('oed-email').value) missing.push("Email");
@@ -505,100 +465,69 @@ window.attemptSaveOrder = function() {
         if(!document.getElementById('oed-start').value) missing.push("Fechas");
         
         if (missing.length > 0) return window.openConfirm(`<p class="text-red-600 font-bold mb-2">Faltan datos para aprobar:</p><ul class="list-disc ml-4 text-xs text-left">${missing.map(m=>`<li>${m}</li>`).join('')}</ul>`, () => window.closeModal('generic-confirm-modal'), true);
-        
-        // INICIAMOS EL FLUJO DE SNAPSHOT
         window.initiateApprovalSnapshot();
     } else {
-        // Guardado normal (borrador o rechazo)
         window.processSaveOrder();
     }
 };
 
-// Paso 2: Preparar la Vista Previa de Aprobación (Snapshot)
 window.initiateApprovalSnapshot = async function() {
-    // 1. Recopilar datos actuales del formulario (para que el PDF refleje lo editado, no solo lo guardado)
     const formData = window.getFormDataFromModal();
-    
-    // 2. Generar Folio Temporal si no existe
     if (!formData.numero_orden) {
         const date = new Date().toISOString().slice(0,10).replace(/-/g,''); 
         const rnd = Math.floor(1000 + Math.random() * 9000); 
         formData.numero_orden = `ORD-${date}-${rnd}`; 
     }
-
-    // 3. Generar HTML
-    const content = window.getOrderHTML({ ...currentPreviewOrder, ...formData }, 'quote'); // Usamos 'quote' porque es la cotización aprobada
-    
+    const content = window.getOrderHTML({ ...currentPreviewOrder, ...formData }, 'quote');
     const pdfContainer = document.getElementById('pdf-content');
     const embedViewer = document.getElementById('doc-preview');
     const btnAction = document.getElementById('btn-download-preview');
-    
-    // 4. Mostrar en Modal de Preview
     pdfContainer.innerHTML = content;
     pdfContainer.classList.remove('hidden');
     embedViewer.classList.add('hidden');
-    
-    // Configuramos el botón para la ACCIÓN CRÍTICA
     btnAction.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirmar Aprobación';
     btnAction.className = "bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full text-xs font-bold uppercase shadow-lg transition flex items-center gap-2";
-    
-    // Mostramos advertencia visual
     document.getElementById('prev-order-num').innerText = "VISTA PREVIA DE APROBACIÓN";
-    
-    // Asignamos la función de cierre del trato
     btnAction.onclick = () => window.executeApprovalTransaction(formData);
-    
     window.openModal('preview-modal');
 };
 
-// Paso 3: Transacción Final (Snapshot -> Upload -> Update DB)
 window.executeApprovalTransaction = async function(formData) {
     const btn = document.getElementById('btn-download-preview');
     btn.disabled = true; btn.innerText = "Generando Snapshot...";
-    
     try {
-        // 1. Tomar Snapshot del HTML visible
         const element = document.getElementById('pdf-content');
         const pdfBlob = await html2pdf().set({ margin: 0, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter' } }).from(element).output('blob');
-        
-        // 2. Subir a Supabase
         const path = `${currentPreviewOrder.id}/cotizacion_aprobada_${Date.now()}.pdf`;
-        const { error: uploadError } = await window.globalSupabase.storage.from('documentos-cp').upload(path, pdfBlob);
-        if (uploadError) throw uploadError;
-
-        // 3. Actualizar Base de Datos (Estado + URL + Datos Finales)
-        const payload = {
-            ...formData,
-            status: 'aprobada',
-            url_cotizacion_final: path // Guardamos la referencia a la evidencia
-        };
-        
-        const { error: dbError } = await window.finSupabase.from('cotizaciones').update(payload).eq('id', currentPreviewOrder.id);
-        if (dbError) throw dbError;
-
-        // 4. Descargar copia local para el usuario (Feedback inmediato)
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(pdfBlob);
-        link.download = `Cotizacion_Aprobada_${formData.numero_orden}.pdf`;
-        link.click();
-
+        await window.globalSupabase.storage.from('documentos-cp').upload(path, pdfBlob);
+        const payload = { ...formData, status: 'aprobada', url_cotizacion_final: path };
+        await window.finSupabase.from('cotizaciones').update(payload).eq('id', currentPreviewOrder.id);
+        const link = document.createElement('a'); link.href = URL.createObjectURL(pdfBlob); link.download = `Cotizacion_Aprobada_${formData.numero_orden}.pdf`; link.click();
         window.showToast("¡Cotización Aprobada y Archivada!", "success");
         window.closeModal('preview-modal');
         window.closeModal('order-edit-modal');
         await window.loadOrders();
-
     } catch (e) {
         console.error(e);
-        window.showToast("Error en la aprobación: " + e.message, "error");
+        window.showToast("Error: " + e.message, "error");
         btn.disabled = false; btn.innerText = "Reintentar";
     }
 };
 
-// Helper: Extraer datos limpios del modal
 window.getFormDataFromModal = function() {
     const spaceId = document.getElementById('oed-space').value; 
     const spaceObj = allSpaces.find(s => s.id == spaceId); 
-    let base = spaceObj ? parseFloat(spaceObj.precio_base) : 0; 
+    const sDate = document.getElementById('oed-start').value;
+    const eDate = document.getElementById('oed-end').value;
+    const guests = parseInt(document.getElementById('oed-guests').value) || 1;
+
+    let base = 0;
+    if (spaceObj && sDate && eDate) {
+        base = calculateDayByDayTotal(spaceObj, sDate, eDate, guests).total;
+    } else if (spaceObj) {
+        base = parseFloat(spaceObj.precio_base);
+    }
+
     let concepts = 0;
     currentConcepts.forEach(c => { concepts += parseFloat(c.amount || c.value || 0); });
     let sub = base + concepts;
@@ -606,7 +535,6 @@ window.getFormDataFromModal = function() {
     const activeTaxIds = Array.from(document.querySelectorAll('.oed-tax-check:checked')).map(cb => parseInt(cb.value));
     const priceFinal = parseFloat(document.getElementById('oed-price').value);
 
-    // Ajustes
     const adjType = document.getElementById('oed-adj-type').value; 
     const adjVal = parseFloat(document.getElementById('oed-adj-val').value) || 0; 
     const isPercent = document.getElementById('oed-adj-unit').value === 'percent';
@@ -617,8 +545,8 @@ window.getFormDataFromModal = function() {
         cliente_contacto: document.getElementById('oed-phone').value,
         cliente_rfc: document.getElementById('fiscal-rfc-re').value,
         cliente_id: (document.getElementById('oed-client-id') ? (document.getElementById('oed-client-id').value || null) : null),
-        fecha_inicio: document.getElementById('oed-start').value,
-        fecha_fin: document.getElementById('oed-end').value,
+        fecha_inicio: sDate,
+        fecha_fin: eDate,
         precio_final: priceFinal,
         espacio_id: spaceId,
         espacio_nombre: spaceObj ? spaceObj.nombre : '',
@@ -627,98 +555,61 @@ window.getFormDataFromModal = function() {
         valor_ajuste: adjVal,
         ajuste_es_porcentaje: isPercent,
         conceptos_adicionales: currentConcepts, 
-        desglose_precios: { 
-            subtotal_antes_impuestos: sub, 
-            impuestos_detalle: activeTaxIds 
-        }
+        desglose_precios: { subtotal_antes_impuestos: sub, impuestos_detalle: activeTaxIds },
+        personas: guests // GUARDAR PERSONAS
     };
 };
 
-// Guardado Simple (Sin cambio a Aprobada)
 window.processSaveOrder = async function() {
     const btn = document.getElementById('btn-save-progress');
     btn.disabled = true; btn.innerText = "Guardando...";
     try {
         const formData = window.getFormDataFromModal();
         formData.status = document.getElementById('oed-status').value;
-        
         const { error } = await window.finSupabase.from('cotizaciones').update(formData).eq('id', document.getElementById('oed-id').value);
         if (error) throw error;
-
         window.showToast("Cambios guardados", "success");
         window.closeModal('order-edit-modal');
         await window.loadOrders(); 
     } catch(e) {
-        console.error(e);
         window.showToast("Error: " + e.message, "error");
     } finally {
         btn.disabled = false; btn.innerText = "Guardar";
     }
 };
 
-// -------------------------------------------------------------------------
-// 7. ORDEN DE COMPRA (SNAPSHOT FLUJO)
-// -------------------------------------------------------------------------
-
 window.previewOrderForGeneration = function(id) {
-    const order = allOrders.find(o => o.id === id);
-    if(!order) return;
-    currentPreviewOrder = { ...order, docType: 'order' }; // 'order' renderiza el formato de OC
-    
-    // Generar el HTML
+    const order = allOrders.find(o => o.id === id); if(!order) return;
+    currentPreviewOrder = { ...order, docType: 'order' }; 
     const content = window.getOrderHTML(order, 'order');
-    
     const pdfContainer = document.getElementById('pdf-content');
     const embed = document.getElementById('doc-preview');
-    
     pdfContainer.innerHTML = content;
     pdfContainer.classList.remove('hidden');
     embed.classList.add('hidden');
-    
     const btn = document.getElementById('btn-download-preview');
     btn.innerHTML = '<i class="fa-solid fa-file-contract"></i> Confirmar y Generar OC';
     btn.className = "bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-full text-xs font-bold uppercase shadow-lg transition flex items-center gap-2";
-    
-    // Asignar el flujo de confirmación + snapshot
     btn.onclick = window.confirmAndGeneratePurchaseOrder;
-    
     window.openModal('preview-modal');
 };
 
 window.confirmAndGeneratePurchaseOrder = async function() {
-    // 1. Confirmación de usuario
     window.openConfirm("¿Generar Orden de Compra Oficial? Se guardará una copia exacta.", async () => {
         const btn = document.getElementById('btn-download-preview');
         btn.disabled = true; btn.innerText = "Generando OC...";
-        
         try {
-            // 2. Tomar Snapshot del HTML visible en el modal PREVIO
-            // Nota: El modal de confirmación se cierra, dejando el modal de preview visible
             const element = document.getElementById('pdf-content'); 
-            
             const pdfBlob = await html2pdf().set({ margin: 0, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter' } }).from(element).output('blob');
-            
             const path = `${currentPreviewOrder.id}/orden_compra_${Date.now()}.pdf`;
-            
-            // 3. Subir Evidencia
             await window.globalSupabase.storage.from('documentos-cp').upload(path, pdfBlob);
-            
-            // 4. Update BD
-            await window.finSupabase.from('cotizaciones').update({ 
-                url_orden_compra: path, 
-                fecha_orden_compra: new Date().toISOString() 
-            }).eq('id', currentPreviewOrder.id);
-            
-            // 5. Descargar localmente
+            await window.finSupabase.from('cotizaciones').update({ url_orden_compra: path, fecha_orden_compra: new Date().toISOString() }).eq('id', currentPreviewOrder.id);
             const link = document.createElement('a'); link.href = URL.createObjectURL(pdfBlob); link.download = `OC_${currentPreviewOrder.numero_orden}.pdf`; link.click();
-    
             window.showToast("Orden de Compra Generada");
             await window.loadOrders(); 
             window.closeModal('preview-modal');
             window.closeModal('docs-modal');
-            
         } catch(e) {
-            console.error(e);
             window.showToast("Error al generar OC", "error");
         } finally {
             btn.disabled = false;
@@ -726,53 +617,36 @@ window.confirmAndGeneratePurchaseOrder = async function() {
     });
 };
 
-// -------------------------------------------------------------------------
-// 8. VISTA PREVIA Y MODAL DOCUMENTOS
-// -------------------------------------------------------------------------
-
 window.openDocsModal = function(id) {
     const order = allOrders.find(o => o.id === id); if(!order) return;
-    
     document.getElementById('doc-client').innerText = order.cliente_nombre;
     document.getElementById('doc-folio').innerText = order.numero_orden || 'PENDIENTE';
     document.getElementById('doc-space').innerText = order.espacio_nombre;
     document.getElementById('doc-dates').innerText = `${window.safeFormatDate(order.fecha_inicio)} - ${window.safeFormatDate(order.fecha_fin)}`;
-    
     const list = document.getElementById('docs-list'); list.innerHTML = '';
     
     const createBtn = (label, icon, color, action) => {
         list.innerHTML += `<button onclick="${action}" class="w-full text-left px-4 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 flex items-center gap-3 transition shadow-sm group bg-white mb-2"><div class="w-8 h-8 rounded-full bg-${color}-100 text-${color}-600 flex items-center justify-center shrink-0"><i class="${icon}"></i></div><div class="flex-grow"><p class="text-xs font-bold text-gray-700">${label}</p></div><i class="fa-solid fa-arrow-right text-xs text-gray-300"></i></button>`;
     };
-
-    if (order.url_cotizacion_final) { 
-        createBtn('Ver Cotización Aprobada', 'fa-solid fa-file-circle-check', 'blue', `window.openStoredDocument('${order.url_cotizacion_final}')`); 
-    } else { 
-        createBtn('Ver Borrador Cotización', 'fa-solid fa-file-pen', 'gray', `window.openPDFPreview('${order.id}', 'quote')`); 
-    }
-
-    if (order.url_orden_compra) { 
-        createBtn('Ver Orden de Compra', 'fa-solid fa-file-contract', 'purple', `window.openStoredDocument('${order.url_orden_compra}')`); 
-    } else if(['aprobada', 'finalizada'].includes(order.status)) { 
-        createBtn('Generar Orden de Compra', 'fa-solid fa-plus', 'purple', `window.previewOrderForGeneration('${order.id}')`); 
-    } else { 
-        list.innerHTML += `<div class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center gap-3 mb-2 opacity-60"><i class="fa-solid fa-lock text-gray-400"></i><span class="text-xs font-bold text-gray-400">Orden de Compra (Pendiente)</span></div>`; 
-    }
-
-    if (order.contrato_url) { createBtn('Ver Contrato Firmado', 'fa-solid fa-file-signature', 'indigo', `window.openStoredDocument('${order.contrato_url}')`); } 
-    else { list.innerHTML += `<div class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center gap-3 mb-2 opacity-60"><i class="fa-solid fa-signature text-gray-400"></i><span class="text-xs font-bold text-gray-400">Contrato (Pendiente Firma)</span></div>`; }
-
+    if (order.url_cotizacion_final) createBtn('Ver Cotización Aprobada', 'fa-solid fa-file-circle-check', 'blue', `window.openStoredDocument('${order.url_cotizacion_final}')`); 
+    else createBtn('Ver Borrador Cotización', 'fa-solid fa-file-pen', 'gray', `window.openPDFPreview('${order.id}', 'quote')`); 
+    
+    if (order.url_orden_compra) createBtn('Ver Orden de Compra', 'fa-solid fa-file-contract', 'purple', `window.openStoredDocument('${order.url_orden_compra}')`); 
+    else if(['aprobada', 'finalizada'].includes(order.status)) createBtn('Generar Orden de Compra', 'fa-solid fa-plus', 'purple', `window.previewOrderForGeneration('${order.id}')`); 
+    else list.innerHTML += `<div class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center gap-3 mb-2 opacity-60"><i class="fa-solid fa-lock text-gray-400"></i><span class="text-xs font-bold text-gray-400">Orden de Compra (Pendiente)</span></div>`; 
+    
+    if (order.contrato_url) createBtn('Ver Contrato Firmado', 'fa-solid fa-file-signature', 'indigo', `window.openStoredDocument('${order.contrato_url}')`); 
+    else list.innerHTML += `<div class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center gap-3 mb-2 opacity-60"><i class="fa-solid fa-signature text-gray-400"></i><span class="text-xs font-bold text-gray-400">Contrato (Pendiente Firma)</span></div>`; 
+    
     if (order.factura_pdf_url) { 
         createBtn('Ver Factura (PDF)', 'fa-solid fa-file-pdf', 'red', `window.openStoredDocument('${order.factura_pdf_url}')`); 
         if(order.factura_xml_url) createBtn('Descargar XML', 'fa-solid fa-file-code', 'orange', `window.openStoredDocument('${order.factura_xml_url}')`); 
-    } else { 
-        list.innerHTML += `<div class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center gap-3 mb-2 opacity-60"><i class="fa-solid fa-file-invoice-dollar text-gray-400"></i><span class="text-xs font-bold text-gray-400">Factura (Pendiente)</span></div>`; 
-    }
-
+    } else list.innerHTML += `<div class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center gap-3 mb-2 opacity-60"><i class="fa-solid fa-file-invoice-dollar text-gray-400"></i><span class="text-xs font-bold text-gray-400">Factura (Pendiente)</span></div>`; 
+    
     if (order.historial_pagos?.length > 0) { 
         const divider = document.createElement('div'); divider.className = 'border-t border-gray-100 my-2 pt-2 text-[10px] font-bold text-gray-400 uppercase text-center'; divider.innerText = 'Historial de Recibos'; list.appendChild(divider); 
         order.historial_pagos.forEach((p, i) => createBtn(`Recibo #${i+1}`, 'fa-solid fa-receipt', 'green', `window.openStoredDocument('${p.file_path}')`)); 
     }
-
     window.openModal('docs-modal');
 };
 
@@ -796,7 +670,6 @@ window.downloadPDFFromPreview = function() {
     html2pdf().set(opt).from(element).save(); 
 };
 
-// --- PDF RENDERER (DISEÑO RESTAURADO) ---
 window.getOrderHTML = function(o, type) { 
     const isOrder = type === 'order'; 
     const logoImg = `<img src="${COMPANY_LOGO_URL}" class="h-16 object-contain" crossorigin="anonymous">`; 
@@ -804,29 +677,52 @@ window.getOrderHTML = function(o, type) {
     const genDateTime = now.toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'medium' }); 
     let docTitle = isOrder ? "ORDEN DE COMPRA" : "COTIZACIÓN"; 
     let folio = o.numero_orden || (isOrder ? 'PENDIENTE' : o.id.slice(0,8).toUpperCase()); 
-    const space = allSpaces.find(s=>s.id==o.espacio_id); const basePrice = parseFloat(space ? space.precio_base : 0); 
+    const space = allSpaces.find(s=>s.id==o.espacio_id); 
     const descHTML = isOrder ? '' : `<p class="text-[9px] text-gray-500 italic mt-0.5 truncate max-w-xs">${space?.descripcion || ''}</p>`; 
     const footerHubHTML = `<div class="w-full text-center mt-10"><p class="text-[10px] text-gray-400 font-medium leading-tight">Generado el ${genDateTime}<br>a través de Marketing Hub - Plaza Mayor</p></div>`; 
     const renderHeader = (title) => `<div class="flex justify-between items-start border-b-4 border-brand-red pb-3 mb-2">${logoImg}<div class="text-right"><h1 class="text-2xl font-black text-gray-800 tracking-tighter uppercase">${title}</h1><p class="text-sm font-mono text-brand-red font-bold mt-1">${folio}</p><p class="text-[10px] text-gray-500 mt-1">${dateStr}</p></div></div>`; 
     let clientName = o.cliente_nombre; let clientRfc = o.cliente_rfc; let nameSizeClass = 'text-xl'; if (clientName.length > 35) nameSizeClass = 'text-xs'; else if (clientName.length > 25) nameSizeClass = 'text-sm'; 
-    const clientComponent = `<div class="flex flex-row justify-between items-center mb-2 p-2 bg-gray-50 rounded border border-gray-100"><div class="w-1/2 border-r border-gray-200 pr-2"><p class="font-black text-[9px] text-gray-400 uppercase tracking-wider mb-0.5">Cliente / Empresa</p><p class="font-black ${nameSizeClass} text-gray-800 leading-tight">${clientName}</p></div><div class="w-1/2 pl-2"><p class="font-black text-[9px] text-gray-400 uppercase tracking-wider mb-0.5">Contacto / Fiscal</p><p class="font-mono text-xs text-gray-700 truncate">${o.cliente_email || 'Sin correo'}</p>${clientRfc ? `<p class="font-mono text-xs text-gray-700 mt-0.5">RFC: <strong>${clientRfc}</strong></p>` : ''}</div></div>`; 
-    let runningSubtotal = basePrice; 
-    let rowsHtml = `<tr><td class="py-2 px-3 align-top"><p class="font-bold text-gray-800 text-xs">${o.espacio_nombre}</p>${descHTML}<span class="bg-gray-100 text-gray-500 px-1 py-0.5 rounded text-[10px] font-mono mt-0.5 inline-block">${o.espacio_clave || ''}</span></td><td class="py-2 px-3 align-top text-center text-gray-500 text-xs">${window.safeFormatDate(o.fecha_inicio)}<br>${window.safeFormatDate(o.fecha_fin)}</td><td class="py-2 px-3 align-top text-right font-bold text-gray-700 text-xs">${new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(basePrice)}</td></tr>`; 
     
-    // FIX CONCEPTOS EN PDF
+    // --- NUEVO: MOSTRAR PERSONAS EN EL PDF ---
+    const guests = o.personas || 1;
+    
+    const clientComponent = `<div class="flex flex-row justify-between items-center mb-2 p-2 bg-gray-50 rounded border border-gray-100"><div class="w-1/2 border-r border-gray-200 pr-2"><p class="font-black text-[9px] text-gray-400 uppercase tracking-wider mb-0.5">Cliente / Empresa</p><p class="font-black ${nameSizeClass} text-gray-800 leading-tight">${clientName}</p></div><div class="w-1/2 pl-2"><p class="font-black text-[9px] text-gray-400 uppercase tracking-wider mb-0.5">Contacto / Fiscal</p><p class="font-mono text-xs text-gray-700 truncate">${o.cliente_email || 'Sin correo'}</p>${clientRfc ? `<p class="font-mono text-xs text-gray-700 mt-0.5">RFC: <strong>${clientRfc}</strong></p>` : ''}<p class="font-mono text-xs text-brand-red font-bold mt-1">Personas: ${guests}</p></div></div>`; 
+    
+    // USAR HELPER DE RANGOS
+    let rentalRows = '';
+    let rentalTotal = 0;
+    
+    if (space && o.fecha_inicio && o.fecha_fin) {
+        const dayBreakdown = calculateDayByDayTotal(space, o.fecha_inicio, o.fecha_fin, guests);
+        rentalTotal = dayBreakdown.total;
+        
+        dayBreakdown.details.forEach((day, idx) => {
+             rentalRows += `<tr>
+                <td class="py-2 px-3 text-xs text-gray-700">
+                    <span class="font-bold">${space.nombre}</span> - Renta ${day.dayName}
+                    ${idx === 0 ? `<br><span class="text-[9px] text-gray-400 italic">${space.clave}</span>` : ''}
+                </td>
+                <td class="py-2 px-3 text-center text-xs text-gray-500">${day.date}</td>
+                <td class="py-2 px-3 text-right font-bold text-xs text-gray-700">${new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(day.price)}</td>
+             </tr>`;
+        });
+    } else {
+        const basePrice = parseFloat(space ? space.precio_base : 0);
+        rentalTotal = basePrice;
+        rentalRows = `<tr><td class="py-2 px-3 align-top"><p class="font-bold text-gray-800 text-xs">${o.espacio_nombre}</p>${descHTML}<span class="bg-gray-100 text-gray-500 px-1 py-0.5 rounded text-[10px] font-mono mt-0.5 inline-block">${o.espacio_clave || ''}</span></td><td class="py-2 px-3 align-top text-center text-gray-500 text-xs">${window.safeFormatDate(o.fecha_inicio)}<br>${window.safeFormatDate(o.fecha_fin)}</td><td class="py-2 px-3 align-top text-right font-bold text-gray-700 text-xs">${new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(basePrice)}</td></tr>`;
+    }
+    
+    let runningSubtotal = rentalTotal; 
+    let rowsHtml = rentalRows; 
     let cArray = [];
     if(Array.isArray(o.conceptos_adicionales)) cArray = o.conceptos_adicionales;
     else if(typeof o.conceptos_adicionales === 'string') try{cArray=JSON.parse(o.conceptos_adicionales)}catch(e){}
     cArray.forEach(c => { 
-        // Normalizamos lectura de 'amount' vs 'value'
         let val = parseFloat(c.amount !== undefined ? c.amount : (c.value || 0));
         let amount = val;
-        // Si hay logica de porcentaje
-        if(c.unit === 'percent') amount = basePrice * (val/100); 
-        
+        if(c.unit === 'percent') amount = rentalTotal * (val/100); 
         if(c.type === 'descuento') runningSubtotal -= amount; else runningSubtotal += amount; 
         const sign = (c.type === 'descuento') ? '-' : '+'; 
-        // Usamos c.description o c.nombre
         rowsHtml += `<tr><td class="py-2 px-3 text-xs text-gray-600">${c.description || c.nombre || 'Adicional'}</td><td class="py-2 px-3"></td><td class="py-2 px-3 text-right text-xs text-gray-600">${sign} ${new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(amount)}</td></tr>`; 
     }); 
     
