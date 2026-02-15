@@ -12,10 +12,10 @@ window.HUB_CONFIG = {
   // Logo del sistema (opcional). Si usas Storage local, sube el archivo a:
   // Bucket: espacios  |  Ruta: logo.png  |  Público: true
   // Si prefieres un archivo local, pon una ruta relativa (ej: './assets/logo.png').
-  companyLogoUrl: 'http://127.0.0.1:54321/storage/v1/object/public/Espacios/logo.png',
+  companyLogoUrl: 'http://127.0.0.1:55551/storage/v1/object/public/Espacios/logo.png',
 
   // Logo Casa de Piedra (Storage local)
-  companyLogoUrlCP: 'http://127.0.0.1:54321/storage/v1/object/public/Espacios/logocp.png',
+  companyLogoUrlCP: 'http://127.0.0.1:55551/storage/v1/object/public/Espacios/logocp.png',
 
   // Módulos visibles en el menú (index.html) cuando localMode=true
     localModules: [
