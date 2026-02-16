@@ -29,8 +29,8 @@
     const _p = window.location.pathname || '';
     const _isCP = /\/cotizadorcp(\/|$)/.test(_p) || (window.location.href || '').includes('cotizadorcp');
     const TENANT_SCHEMA = _isCP ? 'finanzas_casadepiedra' : FIN_SCHEMA;
-    const pmLogo = (window.HUB_CONFIG && window.HUB_CONFIG.companyLogoUrl) || 'http://127.0.0.1:54321/storage/v1/object/public/Espacios/logo.png';
-    const cpLogo = (window.HUB_CONFIG && (window.HUB_CONFIG.companyLogoUrlCP || window.HUB_CONFIG.cpLogoUrl)) || 'http://127.0.0.1:54321/storage/v1/object/public/Espacios/logocp.png';
+    const pmLogo = (window.HUB_CONFIG && window.HUB_CONFIG.companyLogoUrl) || '../assets/logo.png';
+    const cpLogo = (window.HUB_CONFIG && (window.HUB_CONFIG.companyLogoUrlCP || window.HUB_CONFIG.cpLogoUrl)) || '../assets/logocp.png';
     const layoutLogoSrc = _isCP ? cpLogo : pmLogo;
     const layoutBrandName = _isCP ? 'CASA DE PIEDRA' : 'PLAZA MAYOR';
     const layoutAccentHex = _isCP ? '#deac07' : '#D32F2F';
