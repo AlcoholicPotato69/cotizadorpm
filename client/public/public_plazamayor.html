@@ -3,210 +3,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espacios Disponibles - Plaza Mayor</title>
+    <title>Espacios Comerciales - Plaza Mayor</title>
+    
+    <link rel="icon" type="image/png" href="assets/img/faviconpm.png">
+    
     <script src="assets/libs/js/tailwindcss.js"></script>
     <script src="assets/libs/js/supabase.js"></script>
     <link href="assets/libs/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen flex flex-col relative">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <header class="bg-white shadow-md border-b-4 border-indigo-600 relative z-10">
-        <div class="max-w-7xl mx-auto px-4 py-6 text-center">
-            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Plaza Mayor</h1>
-            <p class="text-gray-500 mt-1 font-medium">Catálogo de Espacios Comerciales</p>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        brand: { 
+                            primary: '#cc0000', // Rojo Corporativo Plaza Mayor
+                            dark: '#1a1a1a', 
+                            light: '#f5f5f5' 
+                        } 
+                    },
+                    fontFamily: { 
+                        sans: ['"Montserrat"', 'sans-serif'] 
+                    },
+                    boxShadow: {
+                        'corporate': '0 10px 40px -10px rgba(204,0,0,0.1)',
+                        'corporate-hover': '0 20px 40px -10px rgba(204,0,0,0.2)',
+                        'upward': '0 -10px 20px -5px rgba(0,0,0,0.03)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body.modal-open { overflow: hidden; }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); border-radius: 8px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(204,0,0,0.4); border-radius: 8px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(204,0,0,0.8); }
+        
+        .cal-day { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .cal-day:hover:not(.cal-disabled):not(.cal-occupied) { border-color: #cc0000; background-color: #fff5f5; z-index: 10; transform: scale(1.05); box-shadow: 0 4px 12px rgba(204,0,0,0.1); border-radius: 0.5rem; }
+        .cal-selected { background-color: #cc0000 !important; color: #ffffff !important; border-color: #cc0000 !important; border-radius: 0.5rem; transform: scale(1.05); z-index: 10; box-shadow: 0 4px 15px rgba(204,0,0,0.3); }
+        .cal-in-range { background-color: rgba(204, 0, 0, 0.08) !important; }
+        
+        .cal-disabled { opacity: 0.3; pointer-events: none; background-color: #fafafa; }
+        .cal-occupied { background-color: #f3f4f6; pointer-events: none; position: relative; color: #9ca3af; }
+        .cal-occupied::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px); }
+    </style>
+</head>
+<body class="bg-[#fafafa] text-gray-800 font-sans antialiased min-h-screen flex flex-col relative transition-colors duration-300">
+
+    <header class="bg-white shadow-sm border-b-[3px] border-brand-primary relative z-10">
+        <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col items-center justify-center">
+            <img src="assets/img/logo.png" alt="Plaza Mayor" class="h-16 md:h-20 object-contain" onerror="this.outerHTML='<h1 class=\'text-3xl font-bold text-brand-primary tracking-widest uppercase\'>Plaza Mayor</h1>'">
+            <p class="text-gray-500 mt-2 text-xs md:text-sm font-semibold tracking-[0.2em] uppercase">Catálogo de Espacios Comerciales</p>
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl mx-auto px-4 py-8 w-full relative z-10">
-        <div id="ui-message" class="hidden mb-8 p-4 rounded-lg text-center font-medium shadow-sm transition-all duration-300"></div>
-        <div id="espacios-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-16 w-full relative z-10">
+        <div id="ui-message" class="hidden mb-8 p-4 rounded-xl text-center font-medium shadow-sm transition-all duration-500"></div>
+        <div id="espacios-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14 max-w-6xl mx-auto"></div>
     </main>
 
-    <footer class="bg-gray-900 text-white text-center py-6 mt-auto relative z-10">
-        <p class="text-sm text-gray-400">&copy; 2026 Plaza Mayor. Todos los derechos reservados.</p>
-    </footer>
-
-    <div id="modal-backdrop" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-        <div id="modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 transform scale-95 translate-y-4 transition-all duration-300 max-h-[90vh] flex flex-col overflow-hidden">
-            
-            <div class="relative h-48 sm:h-64 bg-gray-100 flex-shrink-0">
-                <img id="modal-img" src="" alt="Espacio" class="w-full h-full object-cover">
-                <button onclick="cerrarModal()" class="absolute top-4 right-4 bg-white/80 hover:bg-white text-gray-800 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-colors">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                    <h2 id="modal-title" class="text-3xl font-bold text-white mb-1">Nombre Espacio</h2>
-                    <p id="modal-type" class="text-indigo-300 text-sm font-bold uppercase tracking-wide"><i class="fas fa-tag mr-1"></i> Tipo</p>
+    <footer class="bg-brand-dark text-white pt-16 pb-8 border-t-[5px] border-brand-primary relative z-10 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 text-center md:text-left">
+            <div>
+                <img src="assets/img/logo.png" alt="Plaza Mayor" class="h-14 object-contain mb-6 mx-auto md:mx-0 filter brightness-0 invert opacity-90" onerror="this.outerHTML='<h2 class=\'text-2xl font-bold text-white mb-6\'>Plaza Mayor</h2>'">
+                <p class="text-sm text-gray-400 leading-relaxed font-light">El centro comercial más importante del Bajío. Conecta tu marca con miles de visitantes diarios en nuestras exclusivas áreas de exhibición.</p>
+            </div>
+            <div class="flex flex-col items-center md:items-start">
+                <h4 class="font-bold text-white text-lg mb-6 tracking-wider uppercase">Contacto</h4>
+                <p class="text-sm text-gray-400 mb-4 hover:text-brand-primary transition cursor-pointer"><i class="fas fa-map-marker-alt w-5 text-brand-primary"></i> Blvd. Juan Alonso de Torres 2002, León, Gto.</p>
+                <a href="#" class="text-sm text-gray-400 mb-4 hover:text-brand-primary transition"><i class="fas fa-phone w-5 text-brand-primary"></i> +52 (477) 717 6010</a>
+                <a href="https://plazamayor.com.mx" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-400 hover:text-brand-primary transition"><i class="fas fa-globe w-5 text-brand-primary"></i> plazamayor.com.mx</a>
+            </div>
+            <div class="flex flex-col items-center md:items-start">
+                <h4 class="font-bold text-white text-lg mb-6 tracking-wider uppercase">Síguenos</h4>
+                <div class="flex gap-4">
+                    <a href="https://www.facebook.com/PlazaMayorLeon" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all duration-300 shadow-lg hover:scale-110"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/plazamayorleon/" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all duration-300 shadow-lg hover:scale-110"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.tiktok.com/@plazamayorleon" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all duration-300 shadow-lg hover:scale-110"><i class="fab fa-tiktok"></i></a>
                 </div>
             </div>
+        </div>
+        <div class="border-t border-gray-800 pt-8 text-center">
+            <p class="text-[10px] text-gray-500 tracking-[0.2em] uppercase font-light">&copy; 2026 Plaza Mayor. Todos los derechos reservados.</p>
+        </div>
+    </footer>
 
-            <div class="p-6 overflow-y-auto custom-scroll">
-                <p id="modal-desc" class="text-gray-600 text-sm mb-6 leading-relaxed"></p>
-                
-                <div class="bg-gray-50 rounded-xl p-5 border border-gray-100 mb-6">
-                    <h4 class="text-gray-800 font-bold mb-4 flex items-center"><i class="far fa-calendar-alt text-indigo-500 mr-2"></i> Consultar Disponibilidad</h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fecha Inicio</label>
-                            <input type="date" id="date-start" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fecha Fin</label>
-                            <input type="date" id="date-end" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+    <div id="modal-backdrop" class="fixed inset-0 bg-brand-dark/95 backdrop-blur-md z-[100] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-2 sm:p-6">
+        
+        <div id="step-1-info" class="bg-white shadow-2xl w-full max-w-5xl rounded-2xl sm:rounded-3xl transform scale-95 translate-y-4 transition-all duration-500 max-h-[92vh] flex flex-col overflow-hidden border-t-[5px] border-brand-primary relative">
+            <button onclick="cerrarModal()" class="absolute top-4 right-4 z-30 bg-white/90 hover:bg-brand-primary hover:text-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur shadow-md transition-all duration-300 hover:rotate-90"><i class="fas fa-times text-lg"></i></button>
+
+            <div class="flex flex-col md:flex-row flex-1 min-h-0">
+                <div class="w-full md:w-5/12 bg-gray-50 overflow-y-auto custom-scroll border-r border-gray-200 flex flex-col">
+                    <div class="relative h-48 sm:h-64 bg-gray-200 flex-shrink-0">
+                        <img id="modal-img" src="" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/40 to-transparent"></div>
+                        <div class="absolute bottom-6 left-6 sm:left-8 right-6">
+                            <p id="modal-type" class="text-white opacity-90 text-[10px] font-bold uppercase tracking-[0.3em] mb-2 drop-shadow"><i class="fas fa-tag mr-1"></i> Tipo</p>
+                            <h2 id="modal-title" class="text-3xl sm:text-4xl font-bold text-white leading-tight drop-shadow-lg">Espacio</h2>
                         </div>
                     </div>
-                    <div class="mt-4 flex justify-between items-center">
-                        <div id="modal-status-msg" class="text-sm font-bold hidden px-3 py-1.5 rounded-md"></div>
-                        <button id="btn-check" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-md transition-colors">
-                            Verificar Fechas
-                        </button>
+                    <div class="p-6 sm:p-8 flex-1">
+                        <h4 class="text-xs font-bold text-brand-primary uppercase tracking-widest mb-3">Descripción del Espacio</h4>
+                        <p id="modal-desc" class="text-gray-600 text-sm leading-relaxed font-medium text-justify"></p>
                     </div>
                 </div>
 
-                <div class="flex items-end justify-between border-t border-gray-100 pt-5">
-                    <div>
-                        <span class="block text-xs text-gray-400 uppercase font-bold">Inversión Base</span>
-                        <span id="modal-price" class="text-3xl font-black text-gray-900"></span>
+                <div class="w-full md:w-7/12 flex flex-col bg-white min-h-0 relative">
+                    <div id="cal-loader" class="absolute inset-0 bg-white/90 backdrop-blur-sm z-30 flex flex-col items-center justify-center hidden"><i class="fas fa-circle-notch fa-spin text-4xl text-brand-primary mb-4"></i><p class="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Sincronizando Disponibilidad...</p></div>
+
+                    <div class="flex-1 overflow-y-auto custom-scroll p-6 sm:p-8">
+                        <h3 class="font-bold text-2xl text-brand-dark mb-6"><i class="far fa-calendar-check text-brand-primary mr-2"></i> Cotizar Fechas</h3>
+                        
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Selecciona los días de tu campaña</label>
+                        <div class="border-2 border-gray-100 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                            <div class="bg-gray-50 p-3 sm:p-4 flex justify-between items-center border-b border-gray-100">
+                                <button onclick="cambiarMes(-1)" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full hover:bg-white shadow-sm text-brand-dark transition flex items-center justify-center"><i class="fas fa-chevron-left"></i></button>
+                                <h4 id="cal-month-year" class="font-bold text-xs sm:text-sm uppercase tracking-[0.2em] text-brand-primary">Mes Año</h4>
+                                <button onclick="cambiarMes(1)" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full hover:bg-white shadow-sm text-brand-dark transition flex items-center justify-center"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            <div class="grid grid-cols-7 text-center border-b border-gray-100 bg-white">
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Dom</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Lun</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Mar</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Mié</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Jue</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Vie</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Sáb</div>
+                            </div>
+                            <div id="cal-grid" class="grid grid-cols-7 bg-white min-h-[220px] sm:min-h-[260px]"></div>
+                        </div>
+                        <div id="modal-status-msg" class="text-xs font-bold text-center mt-3 hidden px-4 py-3 rounded-xl"></div>
+                        <div class="pb-6"></div> 
                     </div>
-                    <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold shadow-lg transition-transform active:scale-95">
-                        <i class="fab fa-whatsapp mr-2"></i> Solicitar
-                    </button>
+
+                    <div class="flex-shrink-0 bg-white border-t border-gray-100 p-5 sm:p-8 shadow-upward flex flex-col sm:flex-row justify-between items-center z-20 gap-4">
+                        <div class="text-center sm:text-left w-full sm:w-auto">
+                            <span class="block text-[10px] text-gray-400 uppercase tracking-[0.2em] font-bold mb-1">Inversión Base Total</span>
+                            <span id="txt-precio-calculado" class="text-3xl sm:text-4xl font-bold text-brand-dark leading-none">$0.00</span>
+                            <span id="txt-precio-iva" class="block text-xs text-gray-500 font-medium mt-1">$0.00 con IVA</span>
+                            <span class="block text-[9px] text-brand-primary mt-1 opacity-90 italic">(Todos los precios incluyen IVA)</span>
+                        </div>
+                        <button id="btn-check" class="w-full sm:w-auto bg-gray-200 text-gray-400 px-6 sm:px-8 py-4 rounded-xl text-xs font-bold tracking-[0.2em] uppercase cursor-not-allowed transition-all shadow-sm" disabled>Selecciona Fecha</button>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="step-2-contact" class="hidden bg-white shadow-2xl w-full max-w-3xl rounded-2xl sm:rounded-3xl transform transition-all duration-500 max-h-[92vh] flex flex-col overflow-hidden border-t-[5px] border-brand-primary relative">
+            <button onclick="volverPaso1()" class="absolute top-4 left-4 z-30 text-gray-400 hover:text-brand-dark w-10 h-10 rounded-full flex items-center justify-center transition-colors text-xl bg-gray-50 hover:bg-gray-100"><i class="fas fa-arrow-left"></i></button>
+            <button onclick="cerrarModal()" class="absolute top-4 right-4 z-30 bg-gray-50 hover:bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors"><i class="fas fa-times"></i></button>
+
+            <div class="flex-1 overflow-y-auto custom-scroll p-6 sm:p-12">
+                <div class="text-center mb-8 sm:mb-10 pt-4">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 bg-[#fff5f5] text-brand-primary rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 text-3xl sm:text-4xl shadow-sm border border-[#ffebeb]"><i class="fas fa-check"></i></div>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-brand-dark mb-3">Espacio Disponible</h2>
+                    <p class="text-gray-500 text-sm font-medium tracking-wide">Por favor, completa tus datos para que un asesor te contacte.</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 text-brand-dark rounded-2xl p-6 sm:p-8 mb-8 sm:mb-10 flex flex-col md:flex-row justify-between items-start md:items-center shadow-sm">
+                    <div class="mb-4 md:mb-0">
+                        <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mb-2">Resumen de Campaña</p>
+                        <p id="resumen-fechas" class="text-base sm:text-lg font-bold mb-1"></p>
+                    </div>
+                    <div class="md:text-right border-t md:border-t-0 md:border-l border-gray-300 pt-4 md:pt-0 md:pl-8 w-full md:w-auto">
+                        <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mb-2">Inversión Base Total</p>
+                        <p id="resumen-precio" class="text-2xl sm:text-3xl font-black text-brand-dark leading-none"></p>
+                        <p id="resumen-precio-iva" class="text-xs text-gray-500 font-medium mt-1"></p>
+                        <span class="block text-[9px] text-brand-primary mt-1 opacity-90 italic">(Todos los precios incluyen IVA)</span>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div><label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Nombre Completo o Empresa *</label><input type="text" id="cli-name" class="w-full border-b-2 border-gray-200 py-3 text-sm font-bold text-brand-dark outline-none focus:border-brand-primary transition bg-transparent" placeholder="¿A nombre de quién hacemos la cotización?"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                        <div><label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Teléfono a 10 dígitos *</label><input type="tel" id="cli-phone" class="w-full border-b-2 border-gray-200 py-3 text-sm font-bold text-brand-dark outline-none focus:border-brand-primary transition bg-transparent" placeholder="Ej. 4771234567"></div>
+                        <div><label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Correo Electrónico *</label><input type="email" id="cli-email" class="w-full border-b-2 border-gray-200 py-3 text-sm font-bold text-brand-dark outline-none focus:border-brand-primary transition bg-transparent" placeholder="tucorreo@ejemplo.com"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-shrink-0 bg-white border-t border-gray-100 p-5 sm:p-8 shadow-upward z-20">
+                <button id="btn-submit-quote" class="w-full bg-brand-primary hover:bg-red-700 text-white py-4 sm:py-5 rounded-xl sm:rounded-2xl font-bold uppercase tracking-[0.2em] text-xs sm:text-sm transition-all duration-300 active:scale-[0.98] shadow-corporate hover:shadow-corporate-hover">
+                    Enviar Solicitud
+                </button>
             </div>
         </div>
     </div>
 
     <script>
+        // FORMATEADOR DE MONEDA CORPORATIVO
+        function formatMoney(amount) {
+            return '$' + amount.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
         const SUPABASE_URL = 'http://127.0.0.1:55551'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'; 
         const clienteSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { db: { schema: 'finanzas' } });
 
         const grid = document.getElementById('espacios-grid');
-        const uiMessage = document.getElementById('ui-message');
-        let espaciosGlobal = []; // Guardamos los datos en memoria
-        let espacioActualId = null
+        let espaciosGlobal = []; 
+        let espacioActual = null;
 
-        function showMessage(text, type = 'info') {
-            uiMessage.textContent = text;
-            uiMessage.className = `mb-8 p-4 rounded-lg text-center font-medium block animate-fade-in ${
-                type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
-                type === 'warning' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                'bg-blue-50 text-blue-700 border border-blue-200'
-            }`;
-        }
+        let calCurrentDate = new Date();
+        let selStart = null;
+        let selEnd = null;
+        let totalCalculado = 0;
+        let totalConIva = 0;
+        let fechasOcupadasArray = []; 
 
         async function cargarEspacios() {
             try {
-                const { data, error } = await clienteSupabase.from('espacios').select('id, nombre, tipo, descripcion, precio_base, imagen_url').order('nombre', { ascending: true });
+                const { data, error } = await clienteSupabase
+                    .from('espacios')
+                    .select('id, clave, nombre, tipo, descripcion, precio_base, imagen_url')
+                    .order('nombre', { ascending: true });
                 if (error) throw error;
-                if (!data || data.length === 0) return showMessage('Actualmente no hay espacios disponibles.', 'warning');
-                
-                espaciosGlobal = data;
+                espaciosGlobal = data || [];
                 renderizarEspacios();
-            } catch (err) {
-                showMessage('No se pudo conectar con el catálogo.', 'error');
-            }
+            } catch (err) { console.error(err); }
         }
 
         function renderizarEspacios() {
-            grid.innerHTML = espaciosGlobal.map(espacio => `
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer transform hover:-translate-y-1"
-                     onclick="abrirModal('${espacio.id}')">
-                    <div class="relative h-56 bg-gray-100">
-                        <img src="${espacio.imagen_url || 'assets/img/placeholder.png'}" alt="${espacio.nombre}" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-300"></div>
-                    </div>
-                    <div class="p-6 flex-grow flex flex-col">
-                        <h3 class="text-xl font-bold text-gray-900 mb-1">${espacio.nombre}</h3>
-                        <p class="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-2">${espacio.tipo || 'Espacio'}</p>
-                        <p class="text-sm text-gray-500 mt-3 border-t pt-3 line-clamp-3">${espacio.descripcion || 'Sin descripción.'}</p>
-                        <div class="mt-auto pt-5 flex items-center justify-between">
-                            <span class="text-xl font-black text-gray-800">$${espacio.precio_base ? espacio.precio_base.toLocaleString() : '---'}</span>
-                            <span class="text-indigo-600 font-bold text-sm hover:underline">Ver detalles <i class="fas fa-arrow-right ml-1"></i></span>
+            grid.innerHTML = espaciosGlobal.map(espacio => {
+                const precio = parseFloat(espacio.precio_base) || 0;
+                const precioIva = precio * 1.16;
+
+                return `
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-corporate overflow-hidden hover:shadow-corporate-hover transition-all duration-500 flex flex-col cursor-pointer group hover:-translate-y-2" onclick="abrirModal('${espacio.id}')">
+                        <div class="relative h-56 bg-gray-200 overflow-hidden">
+                            <img src="${espacio.imagen_url || 'assets/img/placeholder.png'}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <div class="absolute bottom-6 left-6 right-6">
+                                <p class="text-[10px] font-bold text-white opacity-90 uppercase tracking-[0.3em] mb-1 drop-shadow-md"><i class="fas fa-tag mr-1"></i> ${espacio.tipo || 'Espacio'}</p>
+                                <h3 class="text-2xl font-bold text-white drop-shadow-lg leading-tight">${espacio.nombre}</h3>
+                            </div>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col bg-white relative">
+                            <p class="text-xs text-gray-500 line-clamp-2 mb-6 h-8">${espacio.descripcion || 'Sin descripción disponible.'}</p>
+                            <div class="mt-auto flex items-end justify-between border-t border-gray-100 pt-4">
+                                <div>
+                                    <span class="block text-[9px] text-gray-400 uppercase tracking-[0.2em] font-bold mb-1">Inversión Base Total</span>
+                                    <span class="text-xl font-black text-brand-dark">${precio > 0 ? formatMoney(precio) : 'A consultar'}</span>
+                                    ${precio > 0 ? `<span class="block text-[10px] text-gray-500 font-medium mt-0.5">${formatMoney(precioIva)} con IVA</span>` : ''}
+                                    <span class="block text-[8px] text-brand-primary italic mt-1">(Todos los precios incluyen IVA)</span>
+                                </div>
+                                <div class="w-10 h-10 bg-brand-primary text-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300"><i class="fas fa-arrow-right"></i></div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        // ================= LÓGICA DEL MODAL =================
-        const backdrop = document.getElementById('modal-backdrop');
-        const content = document.getElementById('modal-content');
-        
-        function abrirModal(id) {
-            const espacio = espaciosGlobal.find(e => e.id == id);
-            if (!espacio) return;
-            espacioActualId = espacio.id;
+        async function descargarFechasBloqueadas(id) {
+            fechasOcupadasArray = [];
+            const loader = document.getElementById('cal-loader');
+            loader.classList.remove('hidden');
+            try {
+                const { data, error } = await clienteSupabase.from('cotizaciones').select('fecha_inicio, fecha_fin').eq('espacio_id', id).in('status', ['aprobada', 'finalizada']);
+                if (error) throw error;
+                data.forEach(cot => {
+                    let dCurr = new Date(cot.fecha_inicio + 'T00:00:00'); let dEnd = new Date(cot.fecha_fin + 'T00:00:00');
+                    while (dCurr <= dEnd) { fechasOcupadasArray.push(formateaFechaString(dCurr)); dCurr.setDate(dCurr.getDate() + 1); }
+                });
+            } catch (e) { console.error("Error BD", e); } finally { loader.classList.add('hidden'); }
+        }
 
-            // Limpiar campos
-            document.getElementById('date-start').value = '';
-            document.getElementById('date-end').value = '';
+        function cambiarMes(offset) { calCurrentDate.setMonth(calCurrentDate.getMonth() + offset); renderizarCalendario(); }
+        function formateaFechaString(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+        function esDiaBloqueado(dateObj) {
+            const str = formateaFechaString(dateObj);
+            return fechasOcupadasArray.includes(str);
+        }
+
+        function clickDia(fechaStr) {
+            const parts = fechaStr.split('-'); const clickedDate = new Date(parts[0], parts[1]-1, parts[2], 0, 0, 0);
+
+            if (selStart && !selEnd && clickedDate > selStart) {
+                let hasOverlap = false; let curr = new Date(selStart);
+                while (curr <= clickedDate) {
+                    if (esDiaBloqueado(curr)) { hasOverlap = true; break; }
+                    curr.setDate(curr.getDate() + 1);
+                }
+                if (hasOverlap) { selStart = clickedDate; selEnd = null; } else { selEnd = clickedDate; }
+            } else { selStart = clickedDate; selEnd = null; }
+            
+            renderizarCalendario(); actualizarBotonCheck();
+        }
+
+        function renderizarCalendario() {
+            const container = document.getElementById('cal-grid');
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            const year = calCurrentDate.getFullYear(), month = calCurrentDate.getMonth();
+            document.getElementById('cal-month-year').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1), lastDay = new Date(year, month + 1, 0);
+            const startOffset = firstDay.getDay(); const today = new Date(); today.setHours(0,0,0,0);
+
+            let html = '';
+            for(let i=0; i<startOffset; i++) html += `<div class="p-2 border-b border-r border-gray-100 bg-gray-50/50"></div>`;
+
+            for(let d=1; d<=lastDay.getDate(); d++) {
+                const cellDate = new Date(year, month, d, 0, 0, 0);
+                const cellStr = formateaFechaString(cellDate);
+                
+                let isPast = cellDate < today;
+                let isOccupied = !isPast && esDiaBloqueado(cellDate); 
+                let isSelectedStart = selStart && cellDate.getTime() === selStart.getTime();
+                let isSelectedEnd = selEnd && cellDate.getTime() === selEnd.getTime();
+                let isInRange = selStart && selEnd && cellDate > selStart && cellDate < selEnd;
+                
+                let classNames = "cal-day border-b border-r border-gray-100 h-14 sm:h-16 flex flex-col items-center justify-center cursor-pointer relative";
+                if(isPast) classNames += " cal-disabled";
+                else if (isOccupied) classNames += " cal-occupied";
+                
+                if(!isOccupied && !isPast) {
+                    if(isSelectedStart || isSelectedEnd) classNames += " cal-selected shadow-md";
+                    if(isInRange) classNames += " cal-in-range";
+                }
+
+                const iconoBloqueado = isOccupied ? '<i class="fas fa-ban absolute inset-0 m-auto text-gray-300 text-xl sm:text-2xl opacity-40 flex items-center justify-center"></i>' : '';
+
+                html += `
+                    <div class="${classNames}" onclick="${(!isPast && !isOccupied) ? `clickDia('${cellStr}')` : ''}">
+                        <span class="text-sm font-bold ${isSelectedStart || isSelectedEnd ? 'text-white' : 'text-gray-700'} relative z-10">${d}</span>
+                        ${iconoBloqueado}
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function actualizarBotonCheck() {
+            const btn = document.getElementById('btn-check');
+            if (selStart) {
+                btn.disabled = false; btn.className = 'w-full sm:w-auto bg-brand-primary hover:bg-red-700 text-white px-6 sm:px-10 py-4 sm:py-5 rounded-xl text-xs sm:text-sm font-bold tracking-[0.2em] uppercase transition-all shadow-corporate hover:scale-105 hover:shadow-corporate-hover'; btn.innerHTML = 'Continuar <i class="fas fa-arrow-right ml-2"></i>';
+            } else {
+                btn.disabled = true; btn.className = 'w-full sm:w-auto bg-gray-200 text-gray-400 px-6 sm:px-10 py-4 sm:py-5 rounded-xl text-xs sm:text-sm font-bold tracking-[0.2em] uppercase cursor-not-allowed transition-all shadow-sm'; btn.innerHTML = 'Selecciona Fecha';
+            }
+        }
+
+        const backdrop = document.getElementById('modal-backdrop'); const step1 = document.getElementById('step-1-info'); const step2 = document.getElementById('step-2-contact');
+
+        async function abrirModal(id) {
+            espacioActual = espaciosGlobal.find(e => e.id == id); if (!espacioActual) return;
+            document.body.classList.add('modal-open');
+            
+            totalCalculado = parseFloat(espacioActual.precio_base) || 0;
+            totalConIva = totalCalculado * 1.16;
+            
+            selStart = null; selEnd = null; calCurrentDate = new Date();
+            
+            document.getElementById('txt-precio-calculado').textContent = formatMoney(totalCalculado); 
+            document.getElementById('txt-precio-iva').textContent = `${formatMoney(totalConIva)} con IVA`; 
+            
             document.getElementById('modal-status-msg').classList.add('hidden');
+            
+            document.getElementById('modal-img').src = espacioActual.imagen_url || 'assets/img/placeholder.png'; 
+            document.getElementById('modal-title').textContent = espacioActual.nombre;
+            document.getElementById('modal-type').innerHTML = `<i class="fas fa-tag mr-1"></i> ${espacioActual.tipo || 'Espacio'}`;
+            document.getElementById('modal-desc').textContent = espacioActual.descripcion || 'Detalles no disponibles.';
 
-            // Llenar datos
-            document.getElementById('modal-img').src = espacio.imagen_url || 'assets/img/placeholder.png';
-            document.getElementById('modal-title').textContent = espacio.nombre;
-            document.getElementById('modal-type').innerHTML = `<i class="fas fa-tag mr-1"></i> ${espacio.tipo || 'Espacio'}`;
-            document.getElementById('modal-desc').textContent = espacio.descripcion || 'Este espacio no cuenta con una descripción detallada en este momento.';
-            document.getElementById('modal-price').textContent = `$${espacio.precio_base ? espacio.precio_base.toLocaleString() : '---'}`;
-
-            // Animar entrada
-            backdrop.classList.remove('opacity-0', 'pointer-events-none');
-            content.classList.remove('scale-95', 'translate-y-4');
+            step1.classList.remove('hidden'); step2.classList.add('hidden'); backdrop.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => step1.classList.remove('scale-95', 'translate-y-4'), 10);
+            actualizarBotonCheck(); await descargarFechasBloqueadas(id); renderizarCalendario();
         }
 
-        function cerrarModal() {
-            backdrop.classList.add('opacity-0', 'pointer-events-none');
-            content.classList.add('scale-95', 'translate-y-4');
-        }
-
-        // Cerrar al dar clic fuera del modal
+        function cerrarModal() { document.body.classList.remove('modal-open'); backdrop.classList.add('opacity-0', 'pointer-events-none'); step1.classList.add('scale-95', 'translate-y-4'); step2.classList.add('scale-95', 'translate-y-4'); }
+        function volverPaso1() { step2.classList.add('hidden'); step1.classList.remove('hidden'); }
         backdrop.addEventListener('click', (e) => { if(e.target === backdrop) cerrarModal(); });
 
-        // ================= CONSULTA DE DISPONIBILIDAD =================
         document.getElementById('btn-check').addEventListener('click', async () => {
-            const fInicio = document.getElementById('date-start').value;
-            const fFin = document.getElementById('date-end').value;
-            const msgBox = document.getElementById('modal-status-msg');
-            const btn = document.getElementById('btn-check');
-
-            if (!fInicio || !fFin) {
-                msgBox.textContent = 'Selecciona ambas fechas.';
-                msgBox.className = 'text-sm font-bold block px-3 py-1.5 rounded-md bg-yellow-100 text-yellow-800';
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
+            const btn = document.getElementById('btn-check'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+            const fInicio = formateaFechaString(selStart); const fFin = selEnd ? formateaFechaString(selEnd) : fInicio;
             try {
-                // Lógica exacta de cruce de fechas (Inicio <= ReqFin AND Fin >= ReqInicio)
-                const { data, error } = await clienteSupabase
-                    .from('cotizaciones')
-                    .select('id')
-                    .eq('espacio_id', espacioActualId)
-                    .in('status', ['aprobada', 'finalizada'])
-                    .lte('fecha_inicio', fFin)
-                    .gte('fecha_fin', fInicio);
-
-                if (error) throw error;
-
-                if (data.length > 0) {
-                    msgBox.innerHTML = '<i class="fas fa-times-circle mr-1"></i> FECHAS OCUPADAS';
-                    msgBox.className = 'text-sm font-bold block px-3 py-1.5 rounded-md bg-red-100 text-red-700';
-                } else {
-                    msgBox.innerHTML = '<i class="fas fa-check-circle mr-1"></i> ESPACIO DISPONIBLE';
-                    msgBox.className = 'text-sm font-bold block px-3 py-1.5 rounded-md bg-green-100 text-green-700';
-                }
-            } catch (err) {
-                msgBox.textContent = 'Error al consultar.';
-                msgBox.className = 'text-sm font-bold block px-3 py-1.5 rounded-md bg-red-100 text-red-700';
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Verificar Fechas';
-            }
+                const { data } = await clienteSupabase.from('cotizaciones').select('id').eq('espacio_id', espacioActual.id).in('status', ['aprobada', 'finalizada']).lte('fecha_inicio', fFin).gte('fecha_fin', fInicio);
+                if (data.length > 0) { await descargarFechasBloqueadas(espacioActual.id); renderizarCalendario(); selStart = null; selEnd = null; actualizarBotonCheck(); alert("Esta fecha acaba de ser reservada por alguien más."); return; }
+            } catch(e){} 
+            
+            document.getElementById('resumen-fechas').textContent = selEnd ? `Del ${selStart.toLocaleDateString()} al ${selEnd.toLocaleDateString()}` : `Día ${selStart.toLocaleDateString()}`;
+            
+            document.getElementById('resumen-precio').textContent = formatMoney(totalCalculado);
+            document.getElementById('resumen-precio-iva').textContent = `${formatMoney(totalConIva)} con IVA`;
+            
+            document.getElementById('cli-name').value = ''; document.getElementById('cli-phone').value = ''; document.getElementById('cli-email').value = '';
+            
+            step1.classList.add('hidden'); step2.classList.remove('hidden'); setTimeout(() => step2.classList.remove('scale-95', 'translate-y-4'), 10); actualizarBotonCheck();
         });
 
+        document.getElementById('btn-submit-quote').addEventListener('click', async () => {
+            const nombre = document.getElementById('cli-name').value.trim(), telefono = document.getElementById('cli-phone').value.trim(), email = document.getElementById('cli-email').value.trim(); const btn = document.getElementById('btn-submit-quote');
+            if(!nombre || !telefono || !email) { alert("Por favor, completa todos tus datos de contacto."); return; }
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Procesando...';
+            
+            // CORRECCIÓN: Eliminado "personas: 1" que generaba el Bad Request 400.
+            const payload = { 
+                espacio_id: espacioActual.id, 
+                espacio_nombre: espacioActual.nombre, 
+                espacio_clave: espacioActual.clave, 
+                cliente_nombre: nombre, 
+                cliente_rfc: '', 
+                cliente_contacto: telefono, 
+                cliente_email: email, 
+                fecha_inicio: formateaFechaString(selStart), 
+                fecha_fin: selEnd ? formateaFechaString(selEnd) : formateaFechaString(selStart), 
+                precio_final: totalConIva, 
+                desglose_precios: { subtotal_antes_impuestos: totalCalculado, impuestos_detalle: [], tax_total: (totalConIva - totalCalculado) }, 
+                conceptos_adicionales: [], 
+                status: 'pendiente'
+            };
+            
+            try {
+                const { error } = await clienteSupabase.from('cotizaciones').insert(payload); if (error) throw error;
+                document.getElementById('step-2-contact').innerHTML = `<div class="p-8 md:p-12 text-center h-full flex flex-col items-center justify-center min-h-[50vh]"><div class="w-24 h-24 bg-[#fff5f5] text-brand-primary border-4 border-[#ffebeb] rounded-full flex items-center justify-center mx-auto mb-8 text-5xl shadow-lg"><i class="fas fa-check"></i></div><h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-4">¡Solicitud Exitosa!</h2><p class="text-gray-500 font-medium text-sm md:text-base leading-relaxed">Tu cotización por <strong class="text-brand-dark">${formatMoney(totalConIva)}</strong> ha sido registrada.<br>Nuestro equipo se comunicará contigo al ${telefono}.</p></div>`; setTimeout(() => cerrarModal(), 5000);
+            } catch (err) { alert("Error al enviar la solicitud."); btn.disabled = false; btn.innerHTML = 'Enviar Solicitud'; }
+        });
+        
         document.addEventListener('DOMContentLoaded', cargarEspacios);
     </script>
 </body>
