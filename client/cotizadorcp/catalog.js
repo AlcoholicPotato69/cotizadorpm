@@ -54,66 +54,42 @@ async function loadClientProfilesForQuoteModal() {
             if (el) el.addEventListener('input', clearAssoc);
         });
     } catch (e) {
-        console.warn("No se pudo cargar clientes (¿SQL pendiente?)", e);
+        console.warn("No se pudo cargar clientes", e);
     }
 }
 
-// MÓDULO DE CATÁLOGO (FINAL: RESPONSIVE + SIN EXTRAS)
+// MÓDULO DE CATÁLOGO
 // =========================================================================
-
 const SB_URL = (window.HUB_CONFIG && window.HUB_CONFIG.supabaseUrl) || 'http://127.0.0.1:54321';
-const SB_KEY = (window.HUB_CONFIG && window.HUB_CONFIG.supabaseAnonKey) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
-
+const SB_KEY = (window.HUB_CONFIG && window.HUB_CONFIG.supabaseAnonKey) || 'TU_ANON_KEY';
 const __p = window.location.pathname || '';
 const __isCP = /\/cotizadorcp(\/|$)/.test(__p) || (window.location.href || '').includes('cotizadorcp');
 const FIN_SCHEMA = __isCP ? 'finanzas_casadepiedra' : ((window.HUB_CONFIG && window.HUB_CONFIG.finanzasSchema) || 'finanzas');
 let allSpaces = [], catalogConcepts = [], dbTaxes = [], currentSpace = null, currentConcepts = [], currentPricing = { base:0, final:0 };
 let myPermissions = { access:false, catalog_manage:false };
 
-// --- HELPERS ---
 function parseIds(v){ if(!v) return []; if(Array.isArray(v)) return v; if(typeof v === 'string'){ try { const parsed = JSON.parse(v); return Array.isArray(parsed) ? parsed : []; } catch(e){ return v.split(',').map(x=>x.trim()).filter(Boolean); } } return []; }
 function formatMoney(v){ return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0); }
 
-// HELPER: CÁLCULO POR DÍA Y PERSONAS
 function calculateDayByDayTotal(space, startStr, endStr, guests) {
-    // Si la fecha es inválida, retornar 0
     if (!startStr || !endStr) return { total: 0, details: [] };
     
-    // Normalizar precios_por_dia a un Array de reglas
-    // Estructura esperada: [{min:1, max:100, precios:{lunes:100...}}, ...]
     let rules = [];
     if (space.precios_por_dia) {
-        if (Array.isArray(space.precios_por_dia)) {
-            rules = space.precios_por_dia;
-        } else {
-            // Compatibilidad Legacy: Si es un objeto simple, asumimos rango 1-999999
-            rules = [{ min: 0, max: 999999, precios: space.precios_por_dia }];
-        }
+        if (Array.isArray(space.precios_por_dia)) rules = space.precios_por_dia;
+        else rules = [{ min: 0, max: 999999, precios: space.precios_por_dia }];
     } else {
-        // Fallback total
         rules = [{ min: 0, max: 999999, precios: {lunes: space.precio_base||0, martes:space.precio_base||0, miercoles:space.precio_base||0, jueves:space.precio_base||0, viernes:space.precio_base||0, sabado:space.precio_base||0, domingo:space.precio_base||0} }];
     }
 
     const guestCount = parseInt(guests) || 1;
-    
-    // Buscar la regla que encaje con el número de personas
-    // Si hay solapamiento, toma la primera que encuentre. Si no encuentra, toma la última (catch-all) o la primera.
     let activeRule = rules.find(r => guestCount >= r.min && guestCount <= r.max);
     if (!activeRule) {
-        // Si se sale del rango, buscamos el que tenga el max más alto (asumimos que es el precio mayor)
-        // O podríamos retornar 0. Aquí usaremos la regla "más cercana" por arriba, o la última.
-        if (guestCount > 0) {
-            // Intenta buscar si superó el máximo
-            const maxRule = rules.reduce((prev, current) => (prev.max > current.max) ? prev : current);
-            activeRule = maxRule;
-        } else {
-            activeRule = rules[0];
-        }
+        if (guestCount > 0) activeRule = rules.reduce((prev, current) => (prev.max > current.max) ? prev : current);
+        else activeRule = rules[0];
     }
     
-    // Si aún así falla (array vacío), fallback a ceros
     const prices = activeRule ? (activeRule.precios || {}) : {};
-
     let total = 0;
     let details = [];
     const start = new Date(startStr + 'T00:00:00'); 
@@ -122,19 +98,20 @@ function calculateDayByDayTotal(space, startStr, endStr, guests) {
     const keys = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
     const names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
+    // LECTURA DE DÍAS BLOQUEADOS
+    let blockedDays = [];
+    try { blockedDays = typeof space.dias_bloqueados === 'string' ? JSON.parse(space.dias_bloqueados) : (space.dias_bloqueados || []); } catch(e){}
+
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dayIdx = d.getDay();
         const key = keys[dayIdx];
-        const price = parseFloat(prices[key] || 0);
         
+        // Si el día está explícitamente bloqueado, o su precio es 0, no suma (o lanza error logico en front)
+        let price = parseFloat(prices[key] || 0);
+        if (blockedDays.includes(key)) price = 0;
+
         total += price;
-        details.push({
-            date: d.toLocaleDateString('es-MX'),
-            dayName: names[dayIdx],
-            price: price,
-            ruleMin: activeRule?.min,
-            ruleMax: activeRule?.max
-        });
+        details.push({ date: d.toLocaleDateString('es-MX'), dayName: names[dayIdx], price: price, ruleMin: activeRule?.min, ruleMax: activeRule?.max });
     }
     return { total, details };
 }
@@ -144,40 +121,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(!window.finSupabase) window.finSupabase = window.supabase.createClient(SB_URL, SB_KEY, { db: { schema: FIN_SCHEMA } });
         if(!window.globalSupabase) window.globalSupabase = window.supabase.createClient(SB_URL, SB_KEY);
     }
-
     const { data: { session } } = await window.globalSupabase.auth.getSession();
     if (!session) return;
     const { data: profile } = await window.globalSupabase.from('profiles').select('*').eq('id', session.user.id).single();
 
     const userRole = String(profile?.role || '').toLowerCase().trim();
     const roleHasAccess = (userRole === 'admin') || (userRole === 'casa_de_piedra') || (userRole === 'ambos');
-
     const roleDefaultPerms = { access: true, orders_view: true, reports_view: true, clients_view: true, clients_manage: true };
 
     if (userRole === 'admin') myPermissions = { ...roleDefaultPerms, catalog_manage: true };
     else if (roleHasAccess) myPermissions = { ...roleDefaultPerms, catalog_manage: false };
     else myPermissions = profile.app_metadata?.finanzas?.permissions || { access: false };
 
-    if (!myPermissions.access) {
-        window.showToast?.('No tienes permisos para acceder al Catálogo.', 'error');
-        return;
-    }
-
+    if (!myPermissions.access) return window.showToast?.('No tienes permisos para acceder.', 'error');
     if (userRole !== 'admin') {
-        const navRules = {
-            'orders.html': ('orders_view' in myPermissions) ? !!myPermissions.orders_view : true,
-            'reports.html': ('reports_view' in myPermissions) ? !!myPermissions.reports_view : true,
-            'clientes.html': (('clients_view' in myPermissions) || ('clients_manage' in myPermissions)) ? (!!myPermissions.clients_view || !!myPermissions.clients_manage) : true
-        };
-        Object.keys(navRules).forEach(page => {
-            if (!navRules[page]) { const link = document.querySelector(`a[href="${page}"]`); if (link) link.classList.add('hidden'); }
-        });
+        const navRules = { 'orders.html': ('orders_view' in myPermissions) ? !!myPermissions.orders_view : true, 'reports.html': ('reports_view' in myPermissions) ? !!myPermissions.reports_view : true, 'clientes.html': (('clients_view' in myPermissions) || ('clients_manage' in myPermissions)) ? (!!myPermissions.clients_view || !!myPermissions.clients_manage) : true };
+        Object.keys(navRules).forEach(page => { if (!navRules[page]) { const link = document.querySelector(`a[href="${page}"]`); if (link) link.classList.add('hidden'); } });
     }
 
-    if (myPermissions.catalog_manage) {
-        const btn = document.getElementById('btn-new-space');
-        if(btn) btn.classList.remove('hidden');
-    }
+    if (myPermissions.catalog_manage) { const btn = document.getElementById('btn-new-space'); if(btn) btn.classList.remove('hidden'); }
 
 	await loadTaxes();
 	await loadClientProfilesForQuoteModal();
@@ -187,14 +149,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('mgr-type')?.addEventListener('change', function() { const f=document.getElementById('mgr-file'); if(this.value==='espacio') f.setAttribute('multiple',''); else f.removeAttribute('multiple'); });
 
-    const dStart = document.getElementById('date-start');
-    const dEnd = document.getElementById('date-end');
+    const dStart = document.getElementById('date-start'); const dEnd = document.getElementById('date-end');
     if(dStart && dEnd) {
-        dStart.addEventListener('change', function() {
-            dEnd.min = this.value; 
-            if (dEnd.value && dEnd.value < this.value) { dEnd.value = this.value; }
-            window.updateQuoteCalculation(); window.checkAvailability();
-        });
+        dStart.addEventListener('change', function() { dEnd.min = this.value; if (dEnd.value && dEnd.value < this.value) { dEnd.value = this.value; } window.updateQuoteCalculation(); window.checkAvailability(); });
         dEnd.addEventListener('change', function() { window.updateQuoteCalculation(); window.checkAvailability(); });
     }
 });
@@ -210,35 +167,16 @@ function renderSpaces(list) {
         let adjustedBase = parseFloat(s.precio_base);
         let badgeHTML = '';
 
-        if(s.ajuste_tipo === 'aumento') {
-            adjustedBase += s.precio_base * (s.ajuste_porcentaje/100);
-            badgeHTML = `<div class="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md z-10 flex items-center gap-1"><i class="fa-solid fa-arrow-trend-up"></i> +${s.ajuste_porcentaje}%</div>`;
-        }
-        if(s.ajuste_tipo === 'descuento') {
-            adjustedBase -= s.precio_base * (s.ajuste_porcentaje/100);
-            badgeHTML = `<div class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md z-10 flex items-center gap-1"><i class="fa-solid fa-tag"></i> -${s.ajuste_porcentaje}%</div>`;
-        }
+        if(s.ajuste_tipo === 'aumento') { adjustedBase += s.precio_base * (s.ajuste_porcentaje/100); badgeHTML = `<div class="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md z-10 flex items-center gap-1"><i class="fa-solid fa-arrow-trend-up"></i> +${s.ajuste_porcentaje}%</div>`; }
+        if(s.ajuste_tipo === 'descuento') { adjustedBase -= s.precio_base * (s.ajuste_porcentaje/100); badgeHTML = `<div class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md z-10 flex items-center gap-1"><i class="fa-solid fa-tag"></i> -${s.ajuste_porcentaje}%</div>`; }
 
-        let totalTax = 0;
-        const sTaxes = parseIds(s.impuestos_ids);
-        if(sTaxes.length > 0 && dbTaxes.length > 0) {
-            sTaxes.forEach(taxId => {
-                const t = dbTaxes.find(x => String(x.id) === String(taxId));
-                if(t) {
-                    const rate = t.porcentaje > 1 ? t.porcentaje / 100 : t.porcentaje;
-                    totalTax += adjustedBase * rate;
-                }
-            });
-        }
-        const finalPrice = adjustedBase + totalTax;
-        const taxOnlyAmount = finalPrice - adjustedBase;
+        let totalTax = 0; const sTaxes = parseIds(s.impuestos_ids);
+        if(sTaxes.length > 0 && dbTaxes.length > 0) { sTaxes.forEach(taxId => { const t = dbTaxes.find(x => String(x.id) === String(taxId)); if(t) { const rate = t.porcentaje > 1 ? t.porcentaje / 100 : t.porcentaje; totalTax += adjustedBase * rate; } }); }
+        const finalPrice = adjustedBase + totalTax; const taxOnlyAmount = finalPrice - adjustedBase;
         
         let priceDisplay = '';
-        if(totalTax > 0) {
-            priceDisplay = `<div class="text-right leading-none"><p class="text-[10px] text-gray-400 font-bold mb-0.5 line-through decoration-gray-400">${formatMoney(adjustedBase)}</p><p class="text-[10px] text-red-500 font-bold mb-0.5">+ ${formatMoney(taxOnlyAmount)} (IVA)</p><p class="font-black text-lg text-gray-900">${formatMoney(finalPrice)}</p></div>`;
-        } else {
-            priceDisplay = `<p class="font-black text-gray-800 text-lg">${formatMoney(finalPrice)}</p>`;
-        }
+        if(totalTax > 0) priceDisplay = `<div class="text-right leading-none"><p class="text-[10px] text-gray-400 font-bold mb-0.5 line-through decoration-gray-400">${formatMoney(adjustedBase)}</p><p class="text-[10px] text-red-500 font-bold mb-0.5">+ ${formatMoney(taxOnlyAmount)} (IVA)</p><p class="font-black text-lg text-gray-900">${formatMoney(finalPrice)}</p></div>`;
+        else priceDisplay = `<p class="font-black text-gray-800 text-lg">${formatMoney(finalPrice)}</p>`;
         
         let displayImg = '../../assets/img/no-image.svg';
         if (s.imagen_url) { if (s.imagen_url.trim().startsWith('[')) { try { const parsed = JSON.parse(s.imagen_url); if (parsed.length > 0) displayImg = parsed[0]; } catch (e) { displayImg = s.imagen_url; } } else { displayImg = s.imagen_url; } }
@@ -248,14 +186,10 @@ function renderSpaces(list) {
     }); 
 }
 
-// FUNCIONES DE RANGOS DINÁMICOS
 window.addRangeRow = function(data = null) {
     const container = document.getElementById('mgr-ranges-container');
     const id = Date.now() + Math.random().toString(36).substr(2, 5);
-    
-    // Valores por defecto
-    const min = data ? data.min : 1;
-    const max = data ? data.max : 100;
+    const min = data ? data.min : 1; const max = data ? data.max : 100;
     const prices = data ? data.precios : {lunes:0, martes:0, miercoles:0, jueves:0, viernes:0, sabado:0, domingo:0};
 
     const row = document.createElement('div');
@@ -290,6 +224,10 @@ window.openManagerModal = function(id){
     if (!myPermissions.catalog_manage) return window.showToast("No tienes permisos.", "error"); 
     document.getElementById('mgr-id').value = id || ''; 
     const container = document.getElementById('mgr-taxes-list'); 
+    
+    // Reset dias bloqueados checkboxes
+    document.querySelectorAll('.day-block-check').forEach(cb => cb.checked = false);
+
     if(container) {
         container.innerHTML = '';
         let currentTaxes = [];
@@ -310,18 +248,17 @@ window.openManagerModal = function(id){
         document.getElementById('mgr-name').value = s.nombre; document.getElementById('mgr-type').value = s.tipo; 
         document.getElementById('mgr-desc').value = s.descripcion || ''; 
         
-        // --- LOGICA DE RANGOS ---
         let rules = [];
-        if (s.precios_por_dia) {
-            if (Array.isArray(s.precios_por_dia)) rules = s.precios_por_dia;
-            else rules = [{min: 1, max: 9999, precios: s.precios_por_dia}]; // Legacy convert
-        } else {
-            // Default vacío
-            rules = [{min: 1, max: 100, precios: {lunes:0, martes:0, miercoles:0, jueves:0, viernes:0, sabado:0, domingo:0}}];
-        }
-
+        if (s.precios_por_dia) { if (Array.isArray(s.precios_por_dia)) rules = s.precios_por_dia; else rules = [{min: 1, max: 9999, precios: s.precios_por_dia}]; } 
+        else { rules = [{min: 1, max: 100, precios: {lunes:0, martes:0, miercoles:0, jueves:0, viernes:0, sabado:0, domingo:0}}]; }
         rules.forEach(rule => window.addRangeRow(rule));
-        // -----------------------
+
+        // Cargar días bloqueados
+        let blockedDays = [];
+        try { blockedDays = typeof s.dias_bloqueados === 'string' ? JSON.parse(s.dias_bloqueados) : (s.dias_bloqueados || []); } catch(e){}
+        document.querySelectorAll('.day-block-check').forEach(cb => {
+            if(blockedDays.includes(cb.value)) cb.checked = true;
+        });
 
         document.getElementById('mgr-adj-type').value = s.ajuste_tipo || 'ninguno'; 
         document.getElementById('mgr-adj-pct').value = s.ajuste_porcentaje || 0; 
@@ -332,9 +269,7 @@ window.openManagerModal = function(id){
         document.getElementById('mgr-title').innerText = "Nuevo Espacio"; 
         document.getElementById('mgr-key').value = ''; document.getElementById('mgr-key').disabled = false; 
         document.getElementById('mgr-name').value = ''; 
-        // Agregar una fila vacía por defecto
         window.addRangeRow();
-        
         document.getElementById('mgr-desc').value = ''; document.getElementById('mgr-active').checked = true; 
         document.getElementById('btn-delete-mgr').classList.add('hidden');
         document.getElementById('mgr-preview').src = ''; document.getElementById('mgr-preview').classList.add('hidden');
@@ -350,8 +285,8 @@ window.saveSpace = async function(){
     try {
         const id = document.getElementById('mgr-id').value; 
         const selectedTaxes = Array.from(document.querySelectorAll('.tax-check:checked')).map(cb => parseInt(cb.value));
+        const blockedDays = Array.from(document.querySelectorAll('.day-block-check:checked')).map(cb => cb.value);
 
-        // RECOLECTAR RANGOS
         const rows = document.querySelectorAll('.range-row');
         let ranges = [];
         let maxPriceFound = 0;
@@ -359,24 +294,12 @@ window.saveSpace = async function(){
         rows.forEach(row => {
             const min = parseInt(row.querySelector('.range-min').value) || 0;
             const max = parseInt(row.querySelector('.range-max').value) || 999999;
-            const precios = {
-                lunes: parseFloat(row.querySelector('.p-lun').value) || 0,
-                martes: parseFloat(row.querySelector('.p-mar').value) || 0,
-                miercoles: parseFloat(row.querySelector('.p-mie').value) || 0,
-                jueves: parseFloat(row.querySelector('.p-jue').value) || 0,
-                viernes: parseFloat(row.querySelector('.p-vie').value) || 0,
-                sabado: parseFloat(row.querySelector('.p-sab').value) || 0,
-                domingo: parseFloat(row.querySelector('.p-dom').value) || 0
-            };
-            
-            // Validar max precio para la tarjeta
+            const precios = { lunes: parseFloat(row.querySelector('.p-lun').value) || 0, martes: parseFloat(row.querySelector('.p-mar').value) || 0, miercoles: parseFloat(row.querySelector('.p-mie').value) || 0, jueves: parseFloat(row.querySelector('.p-jue').value) || 0, viernes: parseFloat(row.querySelector('.p-vie').value) || 0, sabado: parseFloat(row.querySelector('.p-sab').value) || 0, domingo: parseFloat(row.querySelector('.p-dom').value) || 0 };
             const localMax = Math.max(...Object.values(precios));
             if(localMax > maxPriceFound) maxPriceFound = localMax;
-
             ranges.push({ min, max, precios });
         });
         
-        // --- LÓGICA DE SUBIDA DE IMAGEN ---
         const fileInput = document.getElementById('mgr-file');
         let imgUrl = null;
         if(id) { const existing = allSpaces.find(s => s.id == id); imgUrl = existing ? existing.imagen_url : null; }
@@ -397,8 +320,9 @@ window.saveSpace = async function(){
             nombre: document.getElementById('mgr-name').value, 
             tipo: document.getElementById('mgr-type').value, 
             descripcion: document.getElementById('mgr-desc').value, 
-            precio_base: maxPriceFound, // Precio referencial (el más alto de todos los rangos)
-            precios_por_dia: ranges, // ARRAY DE RANGOS
+            precio_base: maxPriceFound, 
+            precios_por_dia: ranges, 
+            dias_bloqueados: blockedDays, // NUEVO DATO A BD
             ajuste_tipo: document.getElementById('mgr-adj-type').value, 
             ajuste_porcentaje: parseFloat(document.getElementById('mgr-adj-pct').value) || 0, 
             activa: document.getElementById('mgr-active').checked,
@@ -414,30 +338,16 @@ window.saveSpace = async function(){
         loadCatalog(); 
         fileInput.value = '';
 
-    } catch(e) {
-        console.error(e);
-        window.showToast("Error al guardar: " + e.message, "error");
-    } finally {
-        btn.disabled = false; btn.innerText = "Guardar";
-    }
+    } catch(e) { console.error(e); window.showToast("Error al guardar: " + e.message, "error"); } 
+    finally { btn.disabled = false; btn.innerText = "Guardar"; }
 }
 
 window.openQuoteModal = function(id) {
     currentSpace = allSpaces.find(s => s.id === id); if (!currentSpace) return;
-    
-    document.getElementById('q-name').innerText = currentSpace.nombre; 
-    document.getElementById('q-key').innerText = currentSpace.clave; 
-    document.getElementById('q-price').innerText = "$0.00";
-    
+    document.getElementById('q-name').innerText = currentSpace.nombre; document.getElementById('q-key').innerText = currentSpace.clave; document.getElementById('q-price').innerText = "$0.00";
     let modalImg = currentSpace.imagen_url || ''; if(modalImg.startsWith('[')) { try { modalImg = JSON.parse(modalImg)[0]; } catch(e){} } document.getElementById('q-img').src = modalImg; 
-    
-    const dStart = document.getElementById('date-start');
-    const dEnd = document.getElementById('date-end');
-    dStart.value = ''; dEnd.value = ''; dEnd.min = ''; 
-
-    // Reset Guests
-    document.getElementById('q-guests').value = 1;
-
+    const dStart = document.getElementById('date-start'); const dEnd = document.getElementById('date-end');
+    dStart.value = ''; dEnd.value = ''; dEnd.min = ''; document.getElementById('q-guests').value = 1;
     document.getElementById('cli-name').value = ''; document.getElementById('cli-rfc').value = ''; document.getElementById('cli-phone').value = ''; document.getElementById('cli-email').value = ''; 
     const cliSel = document.getElementById('cli-select'); if(cliSel) cliSel.value=''; const cliId = document.getElementById('cli-id'); if(cliId) cliId.value='';
 	loadClientProfilesForQuoteModal();
@@ -448,32 +358,18 @@ window.updateQuoteCalculation = function() {
     if(!currentSpace) return;
     const s = document.getElementById('date-start').value;
     const e = document.getElementById('date-end').value;
-    const g = document.getElementById('q-guests').value; // NUEVO INPUT
-    
+    const g = document.getElementById('q-guests').value; 
     let calculatedBase = 0;
     
-    if (s && e) {
-        const res = calculateDayByDayTotal(currentSpace, s, e, g);
-        calculatedBase = res.total;
-    } else {
-        calculatedBase = parseFloat(currentSpace.precio_base);
-    }
+    if (s && e) { const res = calculateDayByDayTotal(currentSpace, s, e, g); calculatedBase = res.total; } 
+    else { calculatedBase = parseFloat(currentSpace.precio_base); }
 
     let base = calculatedBase;
     if(currentSpace.ajuste_tipo === 'aumento') base += calculatedBase * (currentSpace.ajuste_porcentaje/100);
     if(currentSpace.ajuste_tipo === 'descuento') base -= calculatedBase * (currentSpace.ajuste_porcentaje/100);
 
-    let taxAmt = 0;
-    const sTaxes = parseIds(currentSpace.impuestos_ids);
-    if(sTaxes.length && dbTaxes.length) {
-        sTaxes.forEach(tid => {
-            const t = dbTaxes.find(x=>String(x.id)===String(tid));
-            if(t) {
-                const rate = t.porcentaje > 1 ? t.porcentaje/100 : t.porcentaje;
-                taxAmt += base * rate;
-            }
-        });
-    }
+    let taxAmt = 0; const sTaxes = parseIds(currentSpace.impuestos_ids);
+    if(sTaxes.length && dbTaxes.length) { sTaxes.forEach(tid => { const t = dbTaxes.find(x=>String(x.id)===String(tid)); if(t) { const rate = t.porcentaje > 1 ? t.porcentaje/100 : t.porcentaje; taxAmt += base * rate; } }); }
 
     const final = base + taxAmt;
     currentPricing = { base: calculatedBase, subtotal: base, taxes: taxAmt, final: final };
@@ -483,42 +379,22 @@ window.updateQuoteCalculation = function() {
 window.generatePDF = async function() {
     const cli = { name: document.getElementById('cli-name').value, rfc: document.getElementById('cli-rfc').value, phone: document.getElementById('cli-phone').value.trim(), email: document.getElementById('cli-email').value.trim() };
     if(!cli.name) return window.showToast("Falta nombre del cliente", "error");
-    
-    const phoneRegex = /^\d{10}$/;
-    if (!phoneRegex.test(cli.phone)) return window.showToast("El teléfono debe tener 10 dígitos numéricos.", "error");
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cli.email)) return window.showToast("El correo electrónico no es válido.", "error");
+    const phoneRegex = /^\d{10}$/; if (!phoneRegex.test(cli.phone)) return window.showToast("El teléfono debe tener 10 dígitos numéricos.", "error");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailRegex.test(cli.email)) return window.showToast("El correo electrónico no es válido.", "error");
 
     window.updateQuoteCalculation();
-
     const guests = parseInt(document.getElementById('q-guests').value) || 1;
-
-    const extrasTotal = 0;
-    let subtotalNeto = currentPricing.subtotal + extrasTotal;
-    
-    const taxIds = parseIds(currentSpace.impuestos_ids);
-    const taxAmt = currentPricing.taxes;
-    const finalPrice = currentPricing.final;
-    
+    const extrasTotal = 0; let subtotalNeto = currentPricing.subtotal + extrasTotal;
+    const taxIds = parseIds(currentSpace.impuestos_ids); const taxAmt = currentPricing.taxes; const finalPrice = currentPricing.final;
     const desglose = { subtotal_antes_impuestos: subtotalNeto, impuestos_detalle: taxIds, tax_total: taxAmt };
 
     const payload = { 
         cliente_id: (document.getElementById('cli-id') ? (document.getElementById('cli-id').value || null) : null), 
-        espacio_id: currentSpace.id, 
-        espacio_nombre: currentSpace.nombre, 
-        espacio_clave: currentSpace.clave, 
-        cliente_nombre: cli.name, 
-        cliente_rfc: cli.rfc, 
-        cliente_contacto: cli.phone, 
-        cliente_email: cli.email, 
-        fecha_inicio: document.getElementById('date-start').value, 
-        fecha_fin: document.getElementById('date-end').value, 
-        precio_final: finalPrice, 
-        desglose_precios: desglose, 
-        conceptos_adicionales: [], 
-        status: 'pendiente', 
-        creado_por: (await window.globalSupabase.auth.getUser()).data.user.id,
-        personas: guests // NUEVO CAMPO
+        espacio_id: currentSpace.id, espacio_nombre: currentSpace.nombre, espacio_clave: currentSpace.clave, 
+        cliente_nombre: cli.name, cliente_rfc: cli.rfc, cliente_contacto: cli.phone, cliente_email: cli.email, 
+        fecha_inicio: document.getElementById('date-start').value, fecha_fin: document.getElementById('date-end').value, 
+        precio_final: finalPrice, desglose_precios: desglose, conceptos_adicionales: [], status: 'pendiente', 
+        creado_por: (await window.globalSupabase.auth.getUser()).data.user.id, personas: guests 
     };
     
     await window.finSupabase.from('cotizaciones').insert(payload);

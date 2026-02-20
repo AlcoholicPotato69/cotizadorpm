@@ -32,7 +32,7 @@
 <body class="bg-brand-gray text-gray-800 flex flex-col min-h-screen">
     
     <script>const TENANT_SCHEMA='finanzas_casadepiedra';</script>
-  <script src="../js/layout.js"></script>
+    <script src="../js/layout.js"></script>
 
     <nav class="bg-brand-red shadow-lg sticky top-16 z-30 border-t border-red-800 transition-all duration-300">
         <div class="container mx-auto px-4 flex h-14 items-center text-white gap-2 overflow-x-auto no-scrollbar">
@@ -40,12 +40,12 @@
             <a href="agenda.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-calendar-days"></i> Agenda</a>
             <a href="orders.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-file-invoice-dollar"></i> Cotizaciones</a>
             <a href="contracts.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-file-signature"></i> Contratos</a>
-            <a href="invoices.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-file-invoice"></i> Facturas</a>            <a href="clientes.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 transition whitespace-nowrap flex items-center gap-2"><i class="fa-solid fa-users"></i> Clientes</a>
-
+            <a href="invoices.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-file-invoice"></i> Facturas</a>
+            <a href="clientes.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 transition whitespace-nowrap flex items-center gap-2"><i class="fa-solid fa-users"></i> Clientes</a>
             <a href="reports.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-chart-pie"></i> Reportes</a>
             <div class="flex-grow"></div>
             <button onclick="window.openManagerModal()" id="btn-new-space" class="bg-white text-brand-red px-4 py-1.5 rounded-full text-xs font-black uppercase shadow hover:bg-gray-100 hidden transition mr-2 whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Nuevo</button>
-</div>
+        </div>
     </nav>
     <main class="flex-grow container mx-auto px-4 md:px-6 py-6 md:py-8 max-w-7xl animate-enter">
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
@@ -78,10 +78,20 @@
                         <p class="text-[10px] font-bold uppercase text-gray-500">Configuración de Precios (Por Personas y Día)</p>
                         <button onclick="window.addRangeRow()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded text-[10px] font-bold uppercase transition"><i class="fa-solid fa-plus mr-1"></i> Agregar Regla</button>
                     </div>
+                    <div id="mgr-ranges-container" class="space-y-4 mb-4"></div>
                     
-                    <div id="mgr-ranges-container" class="space-y-4">
+                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 mt-4">
+                        <p class="text-[10px] font-bold uppercase text-gray-500 mb-2">Días Inhabilitados / Bloqueados Fijos</p>
+                        <div class="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                            <label class="flex items-center gap-1 text-[10px] font-bold text-gray-600 uppercase cursor-pointer"><input type="checkbox" value="lunes" class="day-block-check accent-brand-red"> Lun</label>
+                            <label class="flex items-center gap-1 text-[10px] font-bold text-gray-600 uppercase cursor-pointer"><input type="checkbox" value="martes" class="day-block-check accent-brand-red"> Mar</label>
+                            <label class="flex items-center gap-1 text-[10px] font-bold text-gray-600 uppercase cursor-pointer"><input type="checkbox" value="miercoles" class="day-block-check accent-brand-red"> Mié</label>
+                            <label class="flex items-center gap-1 text-[10px] font-bold text-gray-600 uppercase cursor-pointer"><input type="checkbox" value="jueves" class="day-block-check accent-brand-red"> Jue</label>
+                            <label class="flex items-center gap-1 text-[10px] font-bold text-gray-600 uppercase cursor-pointer"><input type="checkbox" value="viernes" class="day-block-check accent-brand-red"> Vie</label>
+                            <label class="flex items-center gap-1 text-[10px] font-bold text-gray-600 uppercase cursor-pointer"><input type="checkbox" value="sabado" class="day-block-check accent-brand-red"> Sáb</label>
+                            <label class="flex items-center gap-1 text-[10px] font-bold text-gray-600 uppercase cursor-pointer"><input type="checkbox" value="domingo" class="day-block-check accent-brand-red"> Dom</label>
                         </div>
-                    
+                    </div>
                     <input type="hidden" id="mgr-base" value="0">
                 </div>
                 
@@ -114,7 +124,6 @@
         <option value="">— Capturar manualmente —</option>
     </select>
     <input type="hidden" id="cli-id">
-    <p class="text-[11px] mt-1 text-gray-500">Selecciona un cliente guardado para autocompletar.</p>
 </div>
 <div><label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Cliente</label><input id="cli-name" placeholder="Nombre completo o Empresa" class="w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold text-gray-800 outline-none focus:border-brand-red transition"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><input id="cli-phone" placeholder="Teléfono (10 dígitos)" class="w-full border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:border-brand-red transition"><input id="cli-email" placeholder="Correo electrónico" class="w-full border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:border-brand-red transition"></div><input id="cli-rfc" placeholder="RFC (Opcional)" class="w-full border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:border-brand-red transition uppercase"></div>
                 <div class="mt-8 pt-4 border-t border-gray-100 text-right"><button id="btn-generate" onclick="window.generatePDF()" disabled class="bg-brand-red text-white px-8 py-3 rounded-xl text-xs font-black uppercase shadow-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition transform active:scale-95 w-full md:w-auto">Generar Cotización <i class="fa-solid fa-arrow-right ml-2"></i></button></div>

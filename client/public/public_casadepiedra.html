@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo Exclusivo - Casa de Piedra</title>
+    
+    <link rel="icon" type="image/png" href="assets/img/favicon.png">
+    
+    <script src="assets/libs/js/tailwindcss.js"></script>
+    <script src="assets/libs/js/supabase.js"></script>
+    <link href="assets/libs/css/all.min.css" rel="stylesheet">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { gold: '#deac07', dark: '#121212', gray: '#1f1f1f' } },
+                    fontFamily: { serif: ['"Playfair Display"', 'serif'], sans: ['"Montserrat"', 'sans-serif'] },
+                    boxShadow: {
+                        'luxury': '0 10px 40px -10px rgba(0,0,0,0.1)',
+                        'luxury-hover': '0 20px 40px -10px rgba(222,172,7,0.15)',
+                        'upward': '0 -10px 20px -5px rgba(0,0,0,0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body.modal-open { overflow: hidden; }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); border-radius: 8px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(222,172,7,0.4); border-radius: 8px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(222,172,7,0.8); }
+        
+        .cal-day { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .cal-day:hover:not(.cal-disabled):not(.cal-occupied) { border-color: #deac07; background-color: #fdfaf0; z-index: 10; transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 0.5rem; }
+        .cal-selected { background-color: #deac07 !important; color: #121212 !important; border-color: #deac07 !important; border-radius: 0.5rem; transform: scale(1.05); z-index: 10; box-shadow: 0 4px 15px rgba(222,172,7,0.4); }
+        .cal-selected .day-price { color: #121212 !important; font-weight: 800; }
+        .cal-in-range { background-color: rgba(222, 172, 7, 0.1) !important; }
+        
+        .cal-disabled { opacity: 0.3; pointer-events: none; background-color: #f9f9f9; }
+        .cal-occupied { background-color: #f3f4f6; pointer-events: none; position: relative; color: #9ca3af; }
+        .cal-occupied::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px); }
+        
+        .shake-animation { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+    </style>
+</head>
+<body class="bg-[#fcfcfc] text-gray-800 font-sans antialiased min-h-screen flex flex-col relative transition-colors duration-300">
+
+    <header class="bg-brand-dark shadow-xl border-b-[3px] border-brand-gold relative z-10">
+        <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col items-center justify-center">
+            <img src="assets/img/logocp.png" alt="Casa de Piedra" class="h-16 md:h-20 object-contain drop-shadow-lg" onerror="this.outerHTML='<h1 class=\'text-3xl font-serif text-brand-gold tracking-widest uppercase\'>Casa de Piedra</h1>'">
+            <p class="text-gray-400 mt-3 text-xs md:text-sm font-medium tracking-[0.25em] uppercase">Salones y Espacios Exclusivos</p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-16 w-full relative z-10">
+        <div id="ui-message" class="hidden mb-8 p-4 rounded-xl text-center font-medium shadow-sm transition-all duration-500"></div>
+        <div id="espacios-grid" class="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 max-w-5xl mx-auto"></div>
+    </main>
+
+    <footer class="bg-brand-dark text-white pt-16 pb-8 border-t-[5px] border-brand-gold relative z-10 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 text-center md:text-left">
+            <div>
+                <img src="assets/img/logocp.png" alt="Casa de Piedra" class="h-14 object-contain mb-6 mx-auto md:mx-0 opacity-90" onerror="this.outerHTML='<h2 class=\'text-2xl font-serif text-brand-gold mb-6\'>Casa de Piedra</h2>'">
+                <p class="text-sm text-gray-400 leading-relaxed font-light">El escenario perfecto para tus momentos más memorables. Lujo, exclusividad y servicio impecable en el corazón de León.</p>
+            </div>
+            <div class="flex flex-col items-center md:items-start">
+                <h4 class="font-serif text-brand-gold text-lg mb-6 tracking-wider uppercase font-semibold">Contacto</h4>
+                <p class="text-sm text-gray-400 mb-4 hover:text-white transition cursor-pointer"><i class="fas fa-map-marker-alt w-5 text-brand-gold"></i> León, Guanajuato</p>
+                <a href="#" class="text-sm text-gray-400 mb-4 hover:text-white transition"><i class="fas fa-phone w-5 text-brand-gold"></i> +52 (477) 000 0000</a>
+            </div>
+            <div class="flex flex-col items-center md:items-start">
+                <h4 class="font-serif text-brand-gold text-lg mb-6 tracking-wider uppercase font-semibold">Síguenos</h4>
+                <div class="flex gap-4">
+                    <a href="https://www.facebook.com/casadepiedraoficialleon/?locale=es_LA" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-brand-gray flex items-center justify-center hover:bg-brand-gold hover:text-brand-dark transition-all duration-300 shadow-lg hover:scale-110"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/casadepiedraoficial/" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-brand-gray flex items-center justify-center hover:bg-brand-gold hover:text-brand-dark transition-all duration-300 shadow-lg hover:scale-110"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.tiktok.com/@plazamayorleon" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-brand-gray flex items-center justify-center hover:bg-brand-gold hover:text-brand-dark transition-all duration-300 shadow-lg hover:scale-110"><i class="fab fa-tiktok"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-brand-gray flex items-center justify-center hover:bg-brand-gold hover:text-brand-dark transition-all duration-300 shadow-lg hover:scale-110"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 pt-8 text-center">
+            <p class="text-[10px] text-gray-500 tracking-[0.2em] uppercase font-light">&copy; 2026 Casa de Piedra. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <div id="modal-backdrop" class="fixed inset-0 bg-brand-dark/95 backdrop-blur-md z-[100] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-2 sm:p-6">
+        
+        <div id="step-1-info" class="bg-white shadow-2xl w-full max-w-5xl rounded-2xl sm:rounded-3xl transform scale-95 translate-y-4 transition-all duration-500 max-h-[92vh] flex flex-col overflow-hidden border-t-[5px] border-brand-gold relative">
+            <button onclick="cerrarModal()" class="absolute top-4 right-4 z-30 bg-brand-dark/60 hover:bg-brand-gold text-white w-10 h-10 rounded-full flex items-center justify-center backdrop-blur transition-all duration-300 hover:rotate-90"><i class="fas fa-times text-lg"></i></button>
+
+            <div class="flex flex-col md:flex-row flex-1 min-h-0">
+                <div class="w-full md:w-5/12 bg-gray-50 overflow-y-auto custom-scroll border-r border-gray-200 flex flex-col">
+                    <div class="relative h-48 sm:h-64 bg-gray-200 flex-shrink-0">
+                        <img id="modal-img" src="" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/20 to-transparent"></div>
+                        <div class="absolute bottom-6 left-6 sm:left-8 right-6">
+                            <p id="modal-type" class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.3em] mb-2 drop-shadow"><i class="fas fa-gem mr-1"></i> Tipo</p>
+                            <h2 id="modal-title" class="text-3xl sm:text-4xl font-serif text-white leading-tight drop-shadow-lg">Salón</h2>
+                        </div>
+                    </div>
+                    <div class="p-6 sm:p-8 flex-1">
+                        <div class="flex justify-between items-center mb-6 pb-6 border-b border-gray-200">
+                            <div><span class="block text-gray-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">Aforo Máximo</span><span id="modal-cap-max" class="font-serif font-bold text-brand-dark text-2xl"></span></div>
+                        </div>
+                        <p id="modal-desc" class="text-gray-600 text-sm mb-6 leading-relaxed font-light text-justify"></p>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-7/12 flex flex-col bg-white min-h-0 relative">
+                    <div id="cal-loader" class="absolute inset-0 bg-white/90 backdrop-blur-sm z-30 flex flex-col items-center justify-center hidden"><i class="fas fa-circle-notch fa-spin text-5xl text-brand-gold mb-4"></i><p class="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Sincronizando Agenda...</p></div>
+
+                    <div class="flex-1 overflow-y-auto custom-scroll p-6 sm:p-8">
+                        <h3 class="font-serif text-2xl text-brand-dark mb-6 font-medium"><i class="far fa-calendar-check text-brand-gold mr-2"></i> Cotizar Disponibilidad</h3>
+                        
+                        <div class="mb-6">
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">1. ¿Cuántos invitados esperas? *</label>
+                            <div class="relative group">
+                                <i class="fas fa-users absolute left-5 top-1/2 transform -translate-y-1/2 text-brand-gold text-lg transition-transform group-focus-within:scale-110"></i>
+                                <input type="number" id="input-people" placeholder="Requerido para cotizar" class="w-full border-2 border-gray-100 rounded-xl pl-12 pr-4 py-4 text-sm font-medium outline-none focus:border-brand-gold transition shadow-sm bg-gray-50 focus:bg-white" oninput="validarPersonas()">
+                            </div>
+                        </div>
+
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">2. Selecciona tus fechas</label>
+                        <div class="border-2 border-gray-100 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                            <div class="bg-gray-50 p-3 sm:p-4 flex justify-between items-center border-b border-gray-100">
+                                <button onclick="cambiarMes(-1)" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full hover:bg-white shadow-sm text-brand-dark transition flex items-center justify-center"><i class="fas fa-chevron-left"></i></button>
+                                <h4 id="cal-month-year" class="font-bold text-xs sm:text-sm uppercase tracking-[0.2em] text-brand-dark">Mes Año</h4>
+                                <button onclick="cambiarMes(1)" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full hover:bg-white shadow-sm text-brand-dark transition flex items-center justify-center"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            <div class="grid grid-cols-7 text-center border-b border-gray-100 bg-white">
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Dom</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Lun</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Mar</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Mié</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Jue</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Vie</div>
+                                <div class="py-3 text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Sáb</div>
+                            </div>
+                            <div id="cal-grid" class="grid grid-cols-7 bg-white min-h-[220px] sm:min-h-[260px]"></div>
+                        </div>
+                        <div id="modal-status-msg" class="text-xs font-bold text-center mt-3 hidden px-4 py-3 rounded-xl"></div>
+                        <div class="pb-6"></div> 
+                    </div>
+
+                    <div class="flex-shrink-0 bg-white border-t border-gray-100 p-5 sm:p-8 shadow-upward flex flex-col sm:flex-row justify-between items-center z-20 gap-4">
+                        <div class="text-center sm:text-left w-full sm:w-auto"><span class="block text-[10px] text-gray-400 uppercase tracking-[0.2em] font-bold mb-1">Inversión Estimada</span><span id="txt-precio-calculado" class="text-3xl sm:text-4xl font-serif font-black text-brand-dark leading-none">$0.00</span></div>
+                        <button id="btn-check" class="w-full sm:w-auto bg-gray-200 text-gray-400 px-6 sm:px-8 py-4 rounded-xl text-xs font-bold tracking-[0.2em] uppercase cursor-not-allowed transition-all shadow-sm" disabled>Selecciona Fecha</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="step-2-contact" class="hidden bg-white shadow-2xl w-full max-w-3xl rounded-2xl sm:rounded-3xl transform transition-all duration-500 max-h-[92vh] flex flex-col overflow-hidden border-t-[5px] border-brand-gold relative">
+            <button onclick="volverPaso1()" class="absolute top-4 left-4 z-30 text-gray-400 hover:text-brand-dark w-10 h-10 rounded-full flex items-center justify-center transition-colors text-xl bg-gray-50 hover:bg-gray-100"><i class="fas fa-arrow-left"></i></button>
+            <button onclick="cerrarModal()" class="absolute top-4 right-4 z-30 bg-gray-50 hover:bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors"><i class="fas fa-times"></i></button>
+
+            <div class="flex-1 overflow-y-auto custom-scroll p-6 sm:p-12">
+                <div class="text-center mb-8 sm:mb-10 pt-4">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 bg-[#fdfaf0] text-brand-gold rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 text-3xl sm:text-4xl shadow-sm border border-[#f5ebc6]"><i class="fas fa-check"></i></div>
+                    <h2 class="text-3xl sm:text-4xl font-serif text-brand-dark mb-3">Fechas Disponibles</h2>
+                    <p class="text-gray-500 text-sm font-medium tracking-wide">Por favor, completa tus datos para asegurar tu cotización.</p>
+                </div>
+                <div class="bg-brand-dark text-white rounded-2xl p-6 sm:p-8 mb-8 sm:mb-10 flex flex-col md:flex-row justify-between items-start md:items-center shadow-luxury">
+                    <div class="mb-4 md:mb-0"><p class="text-[10px] text-brand-gold uppercase tracking-[0.2em] font-bold mb-2">Resumen de Evento</p><p id="resumen-fechas" class="text-base sm:text-lg font-serif font-medium mb-1"></p><p id="resumen-personas" class="text-xs text-gray-400 font-light tracking-wide"></p></div>
+                    <div class="md:text-right border-t md:border-t-0 md:border-l border-gray-700 pt-4 md:pt-0 md:pl-8 w-full md:w-auto"><p class="text-[10px] text-brand-gold uppercase tracking-[0.2em] font-bold mb-2">Total Estimado</p><p id="resumen-precio" class="text-2xl sm:text-3xl font-serif font-black text-white"></p></div>
+                </div>
+                <div class="space-y-6">
+                    <div><label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Nombre Completo o Empresa *</label><input type="text" id="cli-name" class="w-full border-b-2 border-gray-200 py-3 text-sm font-medium text-brand-dark outline-none focus:border-brand-gold transition bg-transparent" placeholder="¿A nombre de quién hacemos la cotización?"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                        <div><label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Teléfono a 10 dígitos *</label><input type="tel" id="cli-phone" class="w-full border-b-2 border-gray-200 py-3 text-sm font-medium text-brand-dark outline-none focus:border-brand-gold transition bg-transparent" placeholder="Ej. 4771234567"></div>
+                        <div><label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Correo Electrónico *</label><input type="email" id="cli-email" class="w-full border-b-2 border-gray-200 py-3 text-sm font-medium text-brand-dark outline-none focus:border-brand-gold transition bg-transparent" placeholder="tucorreo@ejemplo.com"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-shrink-0 bg-white border-t border-gray-100 p-5 sm:p-8 shadow-upward z-20"><button id="btn-submit-quote" class="w-full bg-brand-gold hover:bg-[#c99a05] text-brand-dark py-4 sm:py-5 rounded-xl sm:rounded-2xl font-bold uppercase tracking-[0.2em] text-xs sm:text-sm transition-all duration-300 active:scale-[0.98] shadow-luxury hover:shadow-luxury-hover">Enviar Solicitud Segura</button></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'http://127.0.0.1:55551'; 
+        const SUPABASE_ANON_KEY = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'; 
+        const clienteSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { db: { schema: 'finanzas_casadepiedra' } });
+
+        const grid = document.getElementById('espacios-grid');
+        let espaciosGlobal = []; 
+        let espacioActual = null;
+        let capacidadMaximaActual = 0;
+        let tarifasActuales = [];
+
+        let calCurrentDate = new Date();
+        let selStart = null;
+        let selEnd = null;
+        let totalCalculado = 0;
+        let fechasOcupadasArray = []; 
+
+        function procesarTarifasJSONB(jsonRaw) {
+            let tarifas = [];
+            try { if (typeof jsonRaw === 'string') tarifas = JSON.parse(jsonRaw); else if (Array.isArray(jsonRaw)) tarifas = jsonRaw; else if (typeof jsonRaw === 'object' && jsonRaw !== null) tarifas = [jsonRaw]; } 
+            catch (e) { console.error("Error", e); }
+            return tarifas;
+        }
+
+        async function cargarEspacios() {
+            try {
+                const { data, error } = await clienteSupabase.from('espacios').select('id, clave, nombre, tipo, descripcion, precios_por_dia, dias_bloqueados, imagen_url').order('nombre', { ascending: true });
+                if (error) throw error;
+                espaciosGlobal = data || [];
+                renderizarEspacios();
+            } catch (err) { console.error(err); }
+        }
+
+        function renderizarEspacios() {
+            grid.innerHTML = espaciosGlobal.map(espacio => {
+                const tarifas = procesarTarifasJSONB(espacio.precios_por_dia);
+                let precioDesde = Infinity, capMax = 0;
+                tarifas.forEach(t => { if(t.max && t.max < 999999 && t.max > capMax) capMax = parseInt(t.max); if(t.precios) Object.values(t.precios).forEach(p => { if(p > 0 && p < precioDesde) precioDesde = parseFloat(p); }); });
+                if (precioDesde === Infinity) precioDesde = 0;
+
+                return `
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-luxury overflow-hidden hover:shadow-luxury-hover transition-all duration-500 flex flex-col cursor-pointer group hover:-translate-y-2" onclick="abrirModal('${espacio.id}')">
+                        <div class="relative h-72 bg-gray-200 overflow-hidden">
+                            <img src="${espacio.imagen_url || 'assets/img/placeholder_cp.png'}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/95 via-brand-dark/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <div class="absolute bottom-8 left-8 right-8">
+                                <p class="text-[10px] font-bold text-brand-gold uppercase tracking-[0.3em] mb-2 drop-shadow-md"><i class="fas fa-gem mr-1"></i> ${espacio.tipo || 'Salón'}</p>
+                                <h3 class="text-3xl font-serif text-white drop-shadow-lg leading-tight">${espacio.nombre}</h3>
+                            </div>
+                        </div>
+                        <div class="p-8 flex-grow flex flex-col bg-white relative">
+                            <div class="absolute -top-6 right-8 w-12 h-12 bg-brand-gold text-brand-dark rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300"><i class="fas fa-arrow-right"></i></div>
+                            <div class="flex justify-between items-center mb-6 pb-6 border-b border-gray-100">
+                                <div class="flex items-center text-gray-500 text-xs tracking-[0.1em] uppercase font-bold"><i class="fas fa-users text-brand-gold mr-3 text-lg"></i> ${capMax > 0 ? `${capMax} px` : 'Aforo Flexible'}</div>
+                            </div>
+                            <div class="mt-auto flex items-end justify-between">
+                                <div><span class="block text-[10px] text-gray-400 uppercase tracking-[0.2em] font-bold mb-1">Inversión Desde</span><span class="text-2xl font-serif font-black text-brand-dark">${precioDesde > 0 ? `$${precioDesde.toLocaleString()}` : 'A consultar'}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function descargarFechasBloqueadas(id) {
+            fechasOcupadasArray = [];
+            const loader = document.getElementById('cal-loader');
+            loader.classList.remove('hidden');
+            try {
+                const { data, error } = await clienteSupabase.from('cotizaciones').select('fecha_inicio, fecha_fin').eq('espacio_id', id).in('status', ['aprobada', 'finalizada']);
+                if (error) throw error;
+                data.forEach(cot => {
+                    let dCurr = new Date(cot.fecha_inicio + 'T00:00:00'); let dEnd = new Date(cot.fecha_fin + 'T00:00:00');
+                    while (dCurr <= dEnd) { fechasOcupadasArray.push(formateaFechaString(dCurr)); dCurr.setDate(dCurr.getDate() + 1); }
+                });
+            } catch (e) { console.error("Error BD", e); } finally { loader.classList.add('hidden'); }
+        }
+
+        function obtenerPrecioParaDia(fechaObj, personas) {
+            if(!tarifasActuales || tarifasActuales.length === 0) return 0;
+            let rule = tarifasActuales.find(t => personas >= (t.min || 0) && personas <= (t.max || 999999));
+            if (!rule) rule = (personas === 0) ? tarifasActuales[0] : tarifasActuales[tarifasActuales.length - 1];
+            if (!rule || !rule.precios) return 0;
+            const keys = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+            return parseFloat(rule.precios[keys[fechaObj.getDay()]]) || 0;
+        }
+
+        function cambiarMes(offset) { calCurrentDate.setMonth(calCurrentDate.getMonth() + offset); renderizarCalendario(); }
+        function formateaFechaString(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+        function esDiaBloqueado(dateObj, personas) {
+            const str = formateaFechaString(dateObj);
+            if (fechasOcupadasArray.includes(str)) return true;
+            let blockedByAdmin = [];
+            try { blockedByAdmin = typeof espacioActual.dias_bloqueados === 'string' ? JSON.parse(espacioActual.dias_bloqueados) : (espacioActual.dias_bloqueados || []); } catch(e){}
+            const keys = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+            if (blockedByAdmin.includes(keys[dateObj.getDay()])) return true;
+            if (personas > 0) { const precioDia = obtenerPrecioParaDia(dateObj, personas); if (precioDia === 0) return true; }
+            return false;
+        }
+
+        function validarPersonas() {
+            const personas = parseInt(document.getElementById('input-people').value) || 0;
+            const msgBox = document.getElementById('modal-status-msg');
+            
+            if(personas <= 0) {
+                selStart = null; selEnd = null; totalCalculado = 0; document.getElementById('txt-precio-calculado').textContent = '$0.00';
+            } else if (capacidadMaximaActual > 0 && capacidadMaximaActual < 999999 && personas > capacidadMaximaActual) {
+                selStart = null; selEnd = null; totalCalculado = 0; document.getElementById('txt-precio-calculado').textContent = '$0.00';
+                msgBox.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i> Excede el aforo máximo de ${capacidadMaximaActual} px`;
+                msgBox.className = 'text-xs font-bold uppercase tracking-widest block px-4 py-3 mt-4 rounded-xl bg-red-50 text-red-600 border border-red-100';
+                msgBox.classList.remove('hidden');
+            } else { msgBox.classList.add('hidden'); }
+            actualizarBotonCheck(); renderizarCalendario(); calcularTotalSeleccion();
+        }
+
+        function clickDia(fechaStr) {
+            const personas = parseInt(document.getElementById('input-people').value) || 0;
+            const inputEl = document.getElementById('input-people');
+            
+            if (personas <= 0 || (capacidadMaximaActual > 0 && capacidadMaximaActual < 999999 && personas > capacidadMaximaActual)) {
+                inputEl.classList.add('shake-animation', 'border-red-500'); setTimeout(() => inputEl.classList.remove('shake-animation', 'border-red-500'), 400);
+                inputEl.focus(); return;
+            }
+
+            const parts = fechaStr.split('-'); const clickedDate = new Date(parts[0], parts[1]-1, parts[2], 0, 0, 0);
+
+            if (selStart && !selEnd && clickedDate > selStart) {
+                let hasOverlap = false; let curr = new Date(selStart);
+                while (curr <= clickedDate) {
+                    if (esDiaBloqueado(curr, personas)) { hasOverlap = true; break; }
+                    curr.setDate(curr.getDate() + 1);
+                }
+                if (hasOverlap) { selStart = clickedDate; selEnd = null; } else { selEnd = clickedDate; }
+            } else { selStart = clickedDate; selEnd = null; }
+            
+            renderizarCalendario(); calcularTotalSeleccion(); actualizarBotonCheck();
+        }
+
+        function renderizarCalendario() {
+            const container = document.getElementById('cal-grid');
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            const year = calCurrentDate.getFullYear(), month = calCurrentDate.getMonth();
+            document.getElementById('cal-month-year').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1), lastDay = new Date(year, month + 1, 0);
+            const startOffset = firstDay.getDay(); const today = new Date(); today.setHours(0,0,0,0);
+            const personas = parseInt(document.getElementById('input-people').value) || 0;
+
+            let html = '';
+            for(let i=0; i<startOffset; i++) html += `<div class="p-2 border-b border-r border-gray-100 bg-gray-50/50"></div>`;
+
+            for(let d=1; d<=lastDay.getDate(); d++) {
+                const cellDate = new Date(year, month, d, 0, 0, 0);
+                const cellStr = formateaFechaString(cellDate);
+                
+                let isPast = cellDate < today;
+                let isOccupied = !isPast && esDiaBloqueado(cellDate, personas); 
+                let isSelectedStart = selStart && cellDate.getTime() === selStart.getTime();
+                let isSelectedEnd = selEnd && cellDate.getTime() === selEnd.getTime();
+                let isInRange = selStart && selEnd && cellDate > selStart && cellDate < selEnd;
+                
+                let classNames = "cal-day border-b border-r border-gray-100 p-2 h-14 sm:h-20 flex flex-col justify-between cursor-pointer relative";
+                if(isPast) classNames += " cal-disabled";
+                else if (isOccupied) classNames += " cal-occupied";
+                
+                if(!isOccupied && !isPast) {
+                    if(isSelectedStart || isSelectedEnd) classNames += " cal-selected shadow-md";
+                    if(isInRange) classNames += " cal-in-range";
+                }
+
+                const precioDia = obtenerPrecioParaDia(cellDate, personas);
+                const precioTexto = (personas > 0 && precioDia > 0 && !isOccupied && !isPast) ? `$${(precioDia/1000).toFixed(1)}k` : '';
+                const iconoBloqueado = isOccupied ? '<i class="fas fa-ban absolute inset-0 m-auto text-gray-300 text-xl sm:text-2xl opacity-40 flex items-center justify-center"></i>' : '';
+
+                html += `
+                    <div class="${classNames}" onclick="${(!isPast && !isOccupied) ? `clickDia('${cellStr}')` : ''}">
+                        <span class="text-xs font-bold ${isSelectedStart || isSelectedEnd ? 'text-brand-dark' : 'text-gray-700'} relative z-10">${d}</span>
+                        <span class="day-price text-[9px] sm:text-[10px] font-semibold text-brand-gold mt-auto text-right tracking-tight relative z-10">${precioTexto}</span>
+                        ${iconoBloqueado}
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function calcularTotalSeleccion() {
+            totalCalculado = 0;
+            const personas = parseInt(document.getElementById('input-people').value) || 0;
+            if (personas > 0 && selStart) {
+                if (selEnd) {
+                    for (let d = new Date(selStart); d <= selEnd; d.setDate(d.getDate() + 1)) totalCalculado += obtenerPrecioParaDia(d, personas);
+                } else { totalCalculado = obtenerPrecioParaDia(selStart, personas); }
+            }
+            document.getElementById('txt-precio-calculado').textContent = totalCalculado > 0 ? `$${totalCalculado.toLocaleString()}` : '$0.00';
+            document.getElementById('modal-status-msg').classList.add('hidden');
+        }
+
+        function actualizarBotonCheck() {
+            const btn = document.getElementById('btn-check');
+            const personas = parseInt(document.getElementById('input-people').value) || 0;
+            if (selStart && personas > 0 && totalCalculado > 0) {
+                btn.disabled = false; btn.className = 'w-full sm:w-auto bg-brand-dark hover:bg-black text-brand-gold px-6 sm:px-10 py-4 sm:py-5 rounded-xl text-xs sm:text-sm font-bold tracking-[0.2em] uppercase transition-all shadow-luxury hover:scale-105 hover:shadow-luxury-hover'; btn.innerHTML = 'Confirmar Cotización <i class="fas fa-arrow-right ml-2"></i>';
+            } else {
+                btn.disabled = true; btn.className = 'w-full sm:w-auto bg-gray-200 text-gray-400 px-6 sm:px-10 py-4 sm:py-5 rounded-xl text-xs sm:text-sm font-bold tracking-[0.2em] uppercase cursor-not-allowed transition-all shadow-sm'; btn.innerHTML = 'Selecciona Fecha';
+            }
+        }
+
+        const backdrop = document.getElementById('modal-backdrop'); const step1 = document.getElementById('step-1-info'); const step2 = document.getElementById('step-2-contact');
+
+        async function abrirModal(id) {
+            espacioActual = espaciosGlobal.find(e => e.id == id); if (!espacioActual) return;
+            document.body.classList.add('modal-open');
+            tarifasActuales = procesarTarifasJSONB(espacioActual.precios_por_dia); tarifasActuales.sort((a, b) => (parseInt(a.min) || 0) - (parseInt(b.min) || 0));
+            let capMax = 0; tarifasActuales.forEach(t => { if(t.max && t.max < 999999 && t.max > capMax) capMax = parseInt(t.max); });
+            const existeInfinito = tarifasActuales.some(t => t.max >= 999999); capacidadMaximaActual = existeInfinito ? 999999 : capMax;
+
+            selStart = null; selEnd = null; totalCalculado = 0; calCurrentDate = new Date();
+            document.getElementById('input-people').value = ''; document.getElementById('txt-precio-calculado').textContent = '$0.00'; document.getElementById('modal-status-msg').classList.add('hidden');
+            
+            document.getElementById('modal-img').src = espacioActual.imagen_url || 'assets/img/placeholder_cp.png'; document.getElementById('modal-title').textContent = espacioActual.nombre;
+            document.getElementById('modal-type').innerHTML = `<i class="fas fa-gem mr-1"></i> ${espacioActual.tipo || 'Salón'}`;
+            document.getElementById('modal-cap-max').textContent = capMax > 0 ? `${capMax} px` : (existeInfinito ? 'Aforo Flexible' : '-- px');
+            document.getElementById('modal-desc').textContent = espacioActual.descripcion || 'Detalles no disponibles.';
+
+            step1.classList.remove('hidden'); step2.classList.add('hidden'); backdrop.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => step1.classList.remove('scale-95', 'translate-y-4'), 10);
+            actualizarBotonCheck(); await descargarFechasBloqueadas(id); renderizarCalendario();
+        }
+
+        function cerrarModal() { document.body.classList.remove('modal-open'); backdrop.classList.add('opacity-0', 'pointer-events-none'); step1.classList.add('scale-95', 'translate-y-4'); step2.classList.add('scale-95', 'translate-y-4'); }
+        function volverPaso1() { step2.classList.add('hidden'); step1.classList.remove('hidden'); }
+        backdrop.addEventListener('click', (e) => { if(e.target === backdrop) cerrarModal(); });
+
+        document.getElementById('btn-check').addEventListener('click', async () => {
+            const personas = parseInt(document.getElementById('input-people').value) || 0; const btn = document.getElementById('btn-check'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+            const fInicio = formateaFechaString(selStart); const fFin = selEnd ? formateaFechaString(selEnd) : fInicio;
+            try {
+                const { data } = await clienteSupabase.from('cotizaciones').select('id').eq('espacio_id', espacioActual.id).in('status', ['aprobada', 'finalizada']).lte('fecha_inicio', fFin).gte('fecha_fin', fInicio);
+                if (data.length > 0) { await descargarFechasBloqueadas(espacioActual.id); renderizarCalendario(); selStart = null; selEnd = null; calcularTotalSeleccion(); actualizarBotonCheck(); alert("Esta fecha acaba de ser reservada por alguien más."); return; }
+            } catch(e){} 
+            document.getElementById('resumen-fechas').textContent = selEnd ? `Del ${selStart.toLocaleDateString()} al ${selEnd.toLocaleDateString()}` : `El día ${selStart.toLocaleDateString()}`;
+            document.getElementById('resumen-personas').textContent = personas > 0 ? `Para ${personas} invitados` : 'Aforo a definir';
+            document.getElementById('resumen-precio').textContent = `$${totalCalculado.toLocaleString()}`;
+            document.getElementById('cli-name').value = ''; document.getElementById('cli-phone').value = ''; document.getElementById('cli-email').value = '';
+            step1.classList.add('hidden'); step2.classList.remove('hidden'); setTimeout(() => step2.classList.remove('scale-95', 'translate-y-4'), 10); actualizarBotonCheck();
+        });
+
+        document.getElementById('btn-submit-quote').addEventListener('click', async () => {
+            const nombre = document.getElementById('cli-name').value.trim(), telefono = document.getElementById('cli-phone').value.trim(), email = document.getElementById('cli-email').value.trim(); const personas = parseInt(document.getElementById('input-people').value) || 1; const btn = document.getElementById('btn-submit-quote');
+            if(!nombre || !telefono || !email) { alert("Por favor, completa todos tus datos de contacto."); return; }
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Procesando...';
+            const payload = { cliente_id: null, espacio_id: espacioActual.id, espacio_nombre: espacioActual.nombre, espacio_clave: espacioActual.clave, cliente_nombre: nombre, cliente_rfc: '', cliente_contacto: telefono, cliente_email: email, fecha_inicio: formateaFechaString(selStart), fecha_fin: selEnd ? formateaFechaString(selEnd) : formateaFechaString(selStart), precio_final: totalCalculado, desglose_precios: { subtotal_antes_impuestos: totalCalculado, impuestos_detalle: [], tax_total: 0 }, conceptos_adicionales: [], status: 'pendiente', personas: personas };
+            try {
+                const { error } = await clienteSupabase.from('cotizaciones').insert(payload); if (error) throw error;
+                document.getElementById('step-2-contact').innerHTML = `<div class="p-8 md:p-12 text-center h-full flex flex-col items-center justify-center min-h-[50vh]"><div class="w-24 h-24 bg-[#fdfaf0] text-brand-gold border-4 border-[#f5ebc6] rounded-full flex items-center justify-center mx-auto mb-8 text-5xl shadow-lg"><i class="fas fa-check"></i></div><h2 class="text-3xl md:text-4xl font-serif text-brand-dark mb-4">¡Solicitud Exitosa!</h2><p class="text-gray-500 font-medium text-sm md:text-base leading-relaxed">Tu cotización por <strong class="text-brand-dark">$${totalCalculado.toLocaleString()}</strong> ha sido registrada.<br>Nuestro equipo de ventas se comunicará contigo al ${telefono}.</p></div>`; setTimeout(() => cerrarModal(), 5000);
+            } catch (err) { alert("Error al enviar la solicitud."); btn.disabled = false; btn.innerHTML = 'Enviar Solicitud Segura'; }
+        });
+        document.addEventListener('DOMContentLoaded', cargarEspacios);
+    </script>
+</body>
+</html>

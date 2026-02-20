@@ -1,0 +1,1 @@
+ALTER TABLE finanzas_casadepiedra.espacios ADD COLUMN dias_bloqueados JSONB DEFAULT '[]'::jsonb;
