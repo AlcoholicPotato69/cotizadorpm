@@ -32,7 +32,7 @@
 <body class="bg-brand-gray text-gray-800 flex flex-col min-h-screen">
     
     <script>const TENANT_SCHEMA='finanzas';</script>
-  <script src="../js/layout.js"></script>
+    <script src="../js/layout.js"></script>
 
     <nav class="bg-brand-red shadow-lg sticky top-16 z-30 border-t border-red-800 transition-all duration-300">
         <div class="container mx-auto px-4 flex h-14 items-center text-white gap-2 overflow-x-auto no-scrollbar">
@@ -40,8 +40,8 @@
             <a href="agenda.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-calendar-days"></i> Agenda</a>
             <a href="orders.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-file-invoice-dollar"></i> Cotizaciones</a>
             <a href="contracts.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-file-signature"></i> Contratos</a>
-            <a href="invoices.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-file-invoice"></i> Facturas</a>            <a href="clientes.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 transition whitespace-nowrap flex items-center gap-2"><i class="fa-solid fa-users"></i> Clientes</a>
-
+            <a href="invoices.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-file-invoice"></i> Facturas</a>
+            <a href="clientes.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 transition whitespace-nowrap flex items-center gap-2"><i class="fa-solid fa-users"></i> Clientes</a>
             <a href="reports.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 whitespace-nowrap transition"><i class="fa-solid fa-chart-pie"></i> Reportes</a>
             <div class="flex-grow"></div>
             <button onclick="window.openManagerModal()" id="btn-new-space" class="bg-white text-brand-red px-4 py-1.5 rounded-full text-xs font-black uppercase shadow hover:bg-gray-100 hidden transition mr-2 whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Nuevo</button>
@@ -72,7 +72,14 @@
                 </div>
                 <div><label class="text-[10px] font-bold uppercase text-gray-500">Nombre</label><input id="mgr-name" class="w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:border-brand-red outline-none"></div>
                 <div><label class="text-[10px] font-bold uppercase text-gray-500">Descripción</label><textarea id="mgr-desc" rows="3" class="w-full border border-gray-200 rounded-lg p-2.5 text-sm bg-white focus:border-brand-red outline-none resize-none"></textarea></div>
-                <div><label class="text-[10px] font-bold uppercase text-gray-500">Precio Base</label><input type="number" id="mgr-base" class="w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:border-brand-red outline-none"></div>
+                
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-gray-500">Etiquetas / Categorías (Separadas por coma)</label>
+                    <input id="mgr-tags" placeholder="Ej. Isla, Temporada Navideña, Premium" class="w-full border border-gray-200 rounded-lg p-2.5 text-sm bg-white focus:border-brand-red outline-none">
+                    <p class="text-[9px] text-gray-400 mt-1">Estas etiquetas crearán los botones de filtro en la web pública.</p>
+                </div>
+
+                <div><label class="text-[10px] font-bold uppercase text-gray-500">Precio Base Total</label><input type="number" id="mgr-base" class="w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:border-brand-red outline-none"></div>
                 <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm"><div class="flex justify-between items-center mb-2"><p class="text-[10px] font-bold uppercase text-gray-500">Impuestos Aplicables</p><i class="fa-solid fa-percent text-gray-400 text-xs"></i></div><div id="mgr-taxes-list" class="grid grid-cols-2 gap-2"></div></div>
                 <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm"><p class="text-[10px] font-bold uppercase mb-2 text-gray-500">Ajuste Automático</p><div class="grid grid-cols-2 gap-3"><select id="mgr-adj-type" class="border border-gray-200 rounded-lg p-2 text-xs font-bold bg-gray-50 outline-none"><option value="ninguno">Ninguno</option><option value="aumento">Aumento (+)</option><option value="descuento">Descuento (-)</option></select><input type="number" id="mgr-adj-pct" placeholder="%" class="border border-gray-200 rounded-lg p-2 text-xs font-bold bg-gray-50 outline-none text-center"></div></div>
                 <div><label class="text-[10px] font-bold uppercase text-gray-500" id="mgr-lbl-img">Imagen</label><input type="file" id="mgr-file" accept="image/*" class="w-full text-xs mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-red/10 file:text-brand-red hover:file:bg-brand-red/20" onchange="window.previewImage(this)"><div class="mt-2 h-32 bg-gray-100 rounded-xl flex items-center justify-center border border-gray-200 overflow-hidden relative"><img id="mgr-preview" class="w-full h-full object-cover hidden"><span class="text-gray-400 text-xs font-bold uppercase absolute pointer-events-none">Vista Previa</span></div></div>

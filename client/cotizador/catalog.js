@@ -46,7 +46,6 @@ async function loadClientProfilesForQuoteModal() {
         };
 
         const clearAssoc = () => {
-            // Si el usuario edita manualmente, rompemos el vínculo
             if (sel.value) sel.value = '';
             if (hid) hid.value = '';
         };
@@ -55,23 +54,19 @@ async function loadClientProfilesForQuoteModal() {
             if (el) el.addEventListener('input', clearAssoc);
         });
     } catch (e) {
-        console.warn("No se pudo cargar clientes (¿SQL pendiente?)", e);
-        // No bloqueamos el flujo
+        console.warn("No se pudo cargar clientes", e);
     }
 }
 
-// MÓDULO DE CATÁLOGO (FINAL: RESPONSIVE + SIN EXTRAS)
+// MÓDULO DE CATÁLOGO (FINAL)
 // =========================================================================
 
-/* -------------------------------------------------------------------------
- * 0. CONEXIÓN A BASE DE DATOS (ÚNICO LUGAR A CAMBIAR)
- * ------------------------------------------------------------------------- */
-const SB_URL = (window.HUB_CONFIG && window.HUB_CONFIG.supabaseUrl) || 'http://127.0.0.1:54321';
-const SB_KEY = (window.HUB_CONFIG && window.HUB_CONFIG.supabaseAnonKey) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+// LECTURA DE CREDENCIALES DESDE ARCHIVO CONFIG (SIN QUEMAR CÓDIGO)
+const SB_URL = window.HUB_CONFIG?.supabaseUrl || window.ENV?.SUPABASE_URL || '';
+const SB_KEY = window.HUB_CONFIG?.supabaseAnonKey || window.ENV?.SUPABASE_ANON_KEY || '';
 
-// (Opcional) Esquema finanzas configurable
-const FIN_SCHEMA = (window.HUB_CONFIG && window.HUB_CONFIG.finanzasSchema) || 'finanzas';
-let allSpaces = [], catalogConcepts = [], dbTaxes = [], currentSpace = null, currentConcepts = [], currentPricing = { base:0, final:0 };
+const FIN_SCHEMA = window.HUB_CONFIG?.finanzasSchema || window.ENV?.SCHEMA_PLAZA_MAYOR || 'finanzas';
+let allSpaces = [], dbTaxes = [], currentSpace = null, currentPricing = { base:0, final:0 };
 let myPermissions = { access:false, catalog_manage:false };
 
 // --- HELPERS ---
@@ -79,6 +74,11 @@ function parseIds(v){ if(!v) return []; if(Array.isArray(v)) return v; if(typeof
 function formatMoney(v){ return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0); }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    if (!SB_URL || !SB_KEY) {
+        console.error("Credenciales de Supabase no encontradas en el config global.");
+        return;
+    }
+
     if (window.supabase) {
         if(!window.finSupabase) window.finSupabase = window.supabase.createClient(SB_URL, SB_KEY, { db: { schema: FIN_SCHEMA } });
         if(!window.globalSupabase) window.globalSupabase = window.supabase.createClient(SB_URL, SB_KEY);
@@ -86,78 +86,47 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const { data: { session } } = await window.globalSupabase.auth.getSession();
     if (!session) return;
-    // Perfil / permisos (sin .single() para evitar 406 cuando no hay fila en profiles)
+    
     const { data: profilesList, error: profileErr } = await window.globalSupabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id);
 
-    if (profileErr) {
-        console.error('Error al cargar perfil:', profileErr);
-        window.showToast?.('No se pudo cargar el perfil de usuario.', 'error');
-        return;
-    }
+    if (profileErr) return window.showToast?.('No se pudo cargar el perfil de usuario.', 'error');
 
     const profile = (profilesList && profilesList.length) ? profilesList[0] : null;
-
-    // Si no existe perfil, avisar y cortar (evita crash y deja claro qué falta en la DB local)
-    if (!profile) {
-        window.showToast?.('No se encontró tu perfil en la tabla profiles. Crea el registro (id = tu user_id) o habilita el trigger de alta.', 'error');
-        return;
-    }
+    if (!profile) return window.showToast?.('No se encontró tu perfil en la tabla profiles.', 'error');
 
     const userRole = String(profile?.role || '').toLowerCase().trim();
+    const roleHasAccess = (userRole === 'admin') || (userRole === 'plaza_mayor') || (userRole === 'ambos');
+    const roleDefaultPerms = { access: true, orders_view: true, reports_view: true, clients_view: true, clients_manage: true };
 
-// Roles por tenant (compat: también acepta app_metadata legacy)
-const roleHasAccess = (userRole === 'admin') || (userRole === 'plaza_mayor') || (userRole === 'ambos');
+    if (userRole === 'admin') myPermissions = { ...roleDefaultPerms, catalog_manage: true };
+    else if (roleHasAccess) myPermissions = { ...roleDefaultPerms, catalog_manage: false };
+    else myPermissions = (profile.app_metadata?.finanzas?.permissions || { access: false });
 
-// Permisos por defecto para roles tenant (para no depender de app_metadata)
-const roleDefaultPerms = {
-    access: true,
-    orders_view: true,
-    reports_view: true,
-    clients_view: true,
-    clients_manage: true
-};
+    if (!myPermissions.access) return window.showToast?.('No tienes permisos para acceder al Catálogo.', 'error');
 
-if (userRole === 'admin') myPermissions = { ...roleDefaultPerms, catalog_manage: true };
-else if (roleHasAccess) myPermissions = { ...roleDefaultPerms, catalog_manage: false };
-else myPermissions = (profile.app_metadata?.finanzas?.permissions || { access: false });
+    if (userRole !== 'admin') {
+        const navRules = {
+            'orders.html': ('orders_view' in myPermissions) ? !!myPermissions.orders_view : true,
+            'reports.html': ('reports_view' in myPermissions) ? !!myPermissions.reports_view : true,
+            'clientes.html': (('clients_view' in myPermissions) || ('clients_manage' in myPermissions))
+                ? (!!myPermissions.clients_view || !!myPermissions.clients_manage) : true
+        };
+        Object.keys(navRules).forEach(page => {
+            if (!navRules[page]) { const link = document.querySelector(`a[href="${page}"]`); if (link) link.classList.add('hidden'); }
+        });
+    }
 
-if (!myPermissions.access) {
-    window.showToast?.('No tienes permisos para acceder al Catálogo.', 'error');
-    return;
-}
-
-// --- SISTEMA DE PERMISOS DE NAVEGACIÓN ---
-if (userRole !== 'admin') {
-    const navRules = {
-        'orders.html': ('orders_view' in myPermissions) ? !!myPermissions.orders_view : true,
-        'reports.html': ('reports_view' in myPermissions) ? !!myPermissions.reports_view : true,
-        'clientes.html': (('clients_view' in myPermissions) || ('clients_manage' in myPermissions))
-            ? (!!myPermissions.clients_view || !!myPermissions.clients_manage)
-            : true
-    };
-    Object.keys(navRules).forEach(page => {
-        if (!navRules[page]) {
-            const link = document.querySelector(`a[href="${page}"]`);
-            if (link) link.classList.add('hidden');
-        }
-    });
-}
-
-if (myPermissions.catalog_manage) document.getElementById('btn-new-space')?.classList.remove('hidden');
+    if (myPermissions.catalog_manage) document.getElementById('btn-new-space')?.classList.remove('hidden');
 
 	await loadTaxes();
-	// Cargar clientes para el select del modal de cotización (no bloquea si falta tabla/RLS)
 	await loadClientProfilesForQuoteModal();
     loadCatalog();
-    const { data } = await window.finSupabase.from('conceptos_catalogo').select('*').eq('activo', true);
-    catalogConcepts = data || [];
 
     document.getElementById('mgr-type')?.addEventListener('change', function() { const f=document.getElementById('mgr-file'); if(this.value==='espacio') f.setAttribute('multiple',''); else f.removeAttribute('multiple'); });
 
-    // --- LÓGICA DE FECHAS DINÁMICAS (CATÁLOGO) ---
     const dStart = document.getElementById('date-start');
     const dEnd = document.getElementById('date-end');
     
@@ -203,16 +172,11 @@ function renderSpaces(list) {
             });
         }
         const finalPrice = adjustedBase + totalTax;
-
         const taxOnlyAmount = finalPrice - adjustedBase;
+        
         let priceDisplay = '';
         if(totalTax > 0) {
-            priceDisplay = `
-            <div class="text-right leading-none">
-                <p class="text-[10px] text-gray-400 font-bold mb-0.5 line-through decoration-gray-400">${formatMoney(adjustedBase)}</p>
-                <p class="text-[10px] text-red-500 font-bold mb-0.5">+ ${formatMoney(taxOnlyAmount)} (IVA)</p>
-                <p class="font-black text-lg text-gray-900">${formatMoney(finalPrice)}</p>
-            </div>`;
+            priceDisplay = `<div class="text-right leading-none"><p class="text-[10px] text-gray-400 font-bold mb-0.5 line-through decoration-gray-400">${formatMoney(adjustedBase)}</p><p class="text-[10px] text-red-500 font-bold mb-0.5">+ ${formatMoney(taxOnlyAmount)} (IVA)</p><p class="font-black text-lg text-gray-900">${formatMoney(finalPrice)}</p></div>`;
         } else {
             priceDisplay = `<p class="font-black text-gray-800 text-lg">${formatMoney(finalPrice)}</p>`;
         }
@@ -220,8 +184,18 @@ function renderSpaces(list) {
         let displayImg = '../../assets/img/no-image.svg';
         if (s.imagen_url) { if (s.imagen_url.trim().startsWith('[')) { try { const parsed = JSON.parse(s.imagen_url); if (parsed.length > 0) displayImg = parsed[0]; } catch (e) { displayImg = s.imagen_url; } } else { displayImg = s.imagen_url; } }
         
+        // RENDER DE ETIQUETAS EN ADMIN
+        let eTags = [];
+        try { eTags = typeof s.etiquetas === 'string' ? JSON.parse(s.etiquetas) : (s.etiquetas || []); } catch(e){}
+        let tagsHtml = '';
+        if(eTags.length > 0) {
+            tagsHtml = `<div class="flex gap-1 mb-2 flex-wrap">` + 
+                eTags.map(t => `<span class="bg-gray-100 text-gray-500 border border-gray-200 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase">${t}</span>`).join('') +
+            `</div>`;
+        }
+
         const editBtn = myPermissions.catalog_manage ? `<button onclick="window.openManagerModal(${s.id})" class="absolute top-3 right-3 bg-white/90 text-gray-700 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all z-10"><i class="fa-solid fa-pen"></i></button>` : '';
-        g.innerHTML += `<div class="bg-white rounded-xl shadow-md relative group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden border border-gray-100"><div class="h-48 bg-gray-200 relative overflow-hidden">${editBtn}${badgeHTML}<img src="${displayImg}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"><div class="absolute bottom-3 left-4 text-white z-10"><p class="text-[10px] font-bold uppercase tracking-wider bg-brand-red px-2 py-0.5 rounded inline-block mb-1">${s.tipo}</p><h3 class="font-bold text-lg leading-tight shadow-black drop-shadow-md">${s.nombre}</h3></div></div><div class="p-5"><div class="flex justify-between items-center mb-4"><p class="text-xs text-gray-400 font-mono"><i class="fa-solid fa-tag mr-1"></i>${s.clave}</p>${priceDisplay}</div><p class="text-xs text-gray-500 line-clamp-2 mb-4 h-8">${s.descripcion || 'Sin descripción disponible.'}</p><div class="border-t pt-3"><button onclick="window.openQuoteModal(${s.id})" class="bg-gray-900 text-white w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-brand-red transition-colors duration-300 shadow-lg"><i class="fa-solid fa-calculator mr-2"></i> Cotizar Ahora</button></div></div></div>`;
+        g.innerHTML += `<div class="bg-white rounded-xl shadow-md relative group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden border border-gray-100"><div class="h-48 bg-gray-200 relative overflow-hidden">${editBtn}${badgeHTML}<img src="${displayImg}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"><div class="absolute bottom-3 left-4 text-white z-10"><p class="text-[10px] font-bold uppercase tracking-wider bg-brand-red px-2 py-0.5 rounded inline-block mb-1">${s.tipo}</p><h3 class="font-bold text-lg leading-tight shadow-black drop-shadow-md">${s.nombre}</h3></div></div><div class="p-5">${tagsHtml}<div class="flex justify-between items-center mb-4"><p class="text-xs text-gray-400 font-mono"><i class="fa-solid fa-tag mr-1"></i>${s.clave}</p>${priceDisplay}</div><p class="text-xs text-gray-500 line-clamp-2 mb-4 h-8">${s.descripcion || 'Sin descripción disponible.'}</p><div class="border-t pt-3"><button onclick="window.openQuoteModal(${s.id})" class="bg-gray-900 text-white w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-brand-red transition-colors duration-300 shadow-lg"><i class="fa-solid fa-calculator mr-2"></i> Cotizar Ahora</button></div></div></div>`;
     }); 
 }
 
@@ -244,15 +218,22 @@ window.openManagerModal = function(id){
         document.getElementById('mgr-title').innerText = "Editar: " + s.nombre; 
         document.getElementById('mgr-key').value = s.clave; document.getElementById('mgr-key').disabled = true; 
         document.getElementById('mgr-name').value = s.nombre; document.getElementById('mgr-type').value = s.tipo; 
-        document.getElementById('mgr-desc').value = s.descripcion || ''; document.getElementById('mgr-base').value = s.precio_base; 
+        document.getElementById('mgr-desc').value = s.descripcion || ''; 
+        
+        let eTags = [];
+        try { eTags = typeof s.etiquetas === 'string' ? JSON.parse(s.etiquetas) : (s.etiquetas || []); } catch(e){}
+        if(!Array.isArray(eTags)) eTags = [];
+        document.getElementById('mgr-tags').value = eTags.join(', ');
+
+        document.getElementById('mgr-base').value = s.precio_base; 
         document.getElementById('mgr-adj-type').value = s.ajuste_tipo || 'ninguno'; document.getElementById('mgr-adj-pct').value = s.ajuste_porcentaje || 0; 
         document.getElementById('mgr-active').checked = s.activa !== false; 
         document.getElementById('btn-delete-mgr').classList.remove('hidden');
-        if(s.imagen_url) { document.getElementById('mgr-preview').src = s.imagen_url.startsWith('[') ? JSON.parse(s.imagen_url)[0] : s.imagen_url; document.getElementById('mgr-preview').classList.remove('hidden'); }
     } else { 
         document.getElementById('mgr-title').innerText = "Nuevo Espacio"; 
         document.getElementById('mgr-key').value = ''; document.getElementById('mgr-key').disabled = false; 
         document.getElementById('mgr-name').value = ''; document.getElementById('mgr-base').value = ''; 
+        document.getElementById('mgr-tags').value = ''; 
         document.getElementById('mgr-desc').value = ''; document.getElementById('mgr-active').checked = true; 
         document.getElementById('btn-delete-mgr').classList.add('hidden');
     } 
@@ -264,11 +245,16 @@ window.saveSpace = async function(){
     const id = document.getElementById('mgr-id').value; 
     const selectedTaxes = Array.from(document.querySelectorAll('.tax-check:checked')).map(cb => parseInt(cb.value));
 
+    // PROCESAR TEXTO A ARREGLO JSONB
+    const rawTags = document.getElementById('mgr-tags').value || '';
+    const tagsArray = rawTags.split(',').map(t => t.trim()).filter(Boolean); 
+
     const payload = { 
         clave: document.getElementById('mgr-key').value.toUpperCase().trim(), 
         nombre: document.getElementById('mgr-name').value, 
         tipo: document.getElementById('mgr-type').value, 
         descripcion: document.getElementById('mgr-desc').value, 
+        etiquetas: tagsArray, // Guarda etiquetas en base de datos
         precio_base: parseFloat(document.getElementById('mgr-base').value), 
         ajuste_tipo: document.getElementById('mgr-adj-type').value, 
         ajuste_porcentaje: parseFloat(document.getElementById('mgr-adj-pct').value) || 0, 
@@ -307,7 +293,6 @@ window.openQuoteModal = function(id) {
     
     const final = base + taxAmt;
     currentPricing = { base: currentSpace.precio_base, subtotal: base, taxes: taxAmt, final: final };
-    currentConcepts = []; // Siempre inicia vacío ahora
     
     document.getElementById('q-name').innerText = currentSpace.nombre; document.getElementById('q-key').innerText = currentSpace.clave; document.getElementById('q-price').innerText = formatMoney(final);
     let modalImg = currentSpace.imagen_url || ''; if(modalImg.startsWith('[')) { try { modalImg = JSON.parse(modalImg)[0]; } catch(e){} } document.getElementById('q-img').src = modalImg; 
@@ -318,7 +303,7 @@ window.openQuoteModal = function(id) {
 
     document.getElementById('cli-name').value = ''; document.getElementById('cli-rfc').value = ''; document.getElementById('cli-phone').value = ''; document.getElementById('cli-email').value = ''; 
     const cliSel = document.getElementById('cli-select'); if(cliSel) cliSel.value=''; const cliId = document.getElementById('cli-id'); if(cliId) cliId.value='';
-	// Refrescar lista de clientes cada vez que se abre el modal (por si agregaron nuevos)
+	
 	loadClientProfilesForQuoteModal();
 	document.getElementById('avail-msg').classList.add('hidden'); document.getElementById('btn-generate').disabled = true; window.openModal('quote-modal');
 }
@@ -332,7 +317,6 @@ window.generatePDF = async function() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(cli.email)) return window.showToast("El correo electrónico no es válido.", "error");
 
-    // Extras siempre 0 ya que se eliminó la sección
     const extrasTotal = 0;
     let subtotalNeto = currentPricing.subtotal + extrasTotal;
     

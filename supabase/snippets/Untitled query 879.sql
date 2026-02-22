@@ -1,0 +1,1 @@
+ALTER TABLE finanzas_casadepiedra.espacios ADD COLUMN etiquetas JSONB DEFAULT '[]'::jsonb;

@@ -30,7 +30,7 @@ try {
 
     # El comando mágico: --data-only evita que se borren las tablas en producción
     # --column-inserts asegura máxima compatibilidad
-    $DumpCommand = "pg_dump -U postgres -d postgres --data-only --column-inserts --schema=public --schema=finanzas"
+    $DumpCommand = "pg_dump -U postgres -d postgres --data-only --column-inserts --schema=public --schema=finanzas --schema=finanzas_casadepiedra"
 
     # Ejecutamos docker y capturamos la salida en el archivo con codificación UTF8
     # Usamos cmd /c para evitar problemas de piping en PowerShell con binarios de linux
