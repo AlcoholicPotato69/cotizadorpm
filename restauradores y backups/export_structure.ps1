@@ -13,7 +13,7 @@ $ContainerName = "supabase_db_cotizador-server"
 $OutputFile = ".\estructura_produccion.sql"
 
 # Esquemas a exportar (Añade o quita según necesites)
-$Schemas = "--schema=public --schema=finanzas --schema=storage"
+$Schemas = "--schema=public --schema=finanzas --schema=storage --schema=finanzas_casadepiedra"
 
 # ================= PROCESO =================
 
