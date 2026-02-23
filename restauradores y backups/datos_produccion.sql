@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict CqZRjsuwBEj8WJ5aRuOxY2PO3bgs6gk2sqLcCBA5MrVD1NjHjxQyFoNYnBUZ1yw
+\restrict a7jWMe59lsUrb51vP7aQqdrQfAqy1j8mFOuctbKlWXqWGlw9NUebCJBHVuaw8WZ
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -30,11 +30,10 @@ INSERT INTO finanzas.clientes (id, nombre_completo, telefono, correo, rfc, creat
 -- Data for Name: conceptos_catalogo; Type: TABLE DATA; Schema: finanzas; Owner: postgres
 --
 
-INSERT INTO finanzas.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (2, 'Modificaci??n manual', 0, true, '2025-12-19 08:30:52.173681+00');
 INSERT INTO finanzas.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (1, 'Limpieza', 0, true, '2025-12-19 08:29:59.031025+00');
 INSERT INTO finanzas.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (3, 'Mobiliario', 0, true, '2025-12-19 08:30:57.056834+00');
-INSERT INTO finanzas.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (5, 'Instalaci??n', 0, true, '2025-12-19 08:36:01.791921+00');
 INSERT INTO finanzas.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (4, 'Seguridad', 500, true, '2025-12-19 08:31:41.47937+00');
+INSERT INTO finanzas.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (5, 'Instalación', 0, true, '2025-12-19 08:36:01.791921+00');
 
 
 --
@@ -116,6 +115,10 @@ Medidas: Por definir.', NULL, NULL, true, 40000, 'ninguno', 0, true, '[1]', '#e6
 -- Data for Name: cotizaciones; Type: TABLE DATA; Schema: finanzas; Owner: postgres
 --
 
+INSERT INTO finanzas.cotizaciones (id, created_at, creado_por, espacio_id, espacio_nombre, espacio_clave, cliente_nombre, cliente_rfc, cliente_contacto, cliente_email, cliente_telefono, fecha_inicio, fecha_fin, precio_final, desglose_precios, status, numero_orden, numero_contrato, factura_pdf_url, factura_xml_url, contrato_url, url_cotizacion_final, url_orden_compra, fecha_orden_compra, datos_fiscales, conceptos_adicionales, tipo_ajuste, valor_ajuste, ajuste_es_porcentaje, desglose_impuestos, historial_pagos, datos_factura, cliente_id) VALUES ('539b8961-8237-45ed-85eb-0b7eec808ee1', '2026-02-22 00:55:17.325073+00', NULL, 10, 'Antepecho pasillo a C&A', 'Z 2-1', 'Johan Jacob Paz Valadez', '', '345345', '345', NULL, '2026-02-21', '2026-02-28', 64611.99999999999, '{"tax_total": 8911.999999999993, "impuestos_detalle": [], "subtotal_antes_impuestos": 55700}', 'pendiente', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{}', '[]', 'ninguno', 0, false, '[]', '[]', '{}', NULL);
+INSERT INTO finanzas.cotizaciones (id, created_at, creado_por, espacio_id, espacio_nombre, espacio_clave, cliente_nombre, cliente_rfc, cliente_contacto, cliente_email, cliente_telefono, fecha_inicio, fecha_fin, precio_final, desglose_precios, status, numero_orden, numero_contrato, factura_pdf_url, factura_xml_url, contrato_url, url_cotizacion_final, url_orden_compra, fecha_orden_compra, datos_fiscales, conceptos_adicionales, tipo_ajuste, valor_ajuste, ajuste_es_porcentaje, desglose_impuestos, historial_pagos, datos_factura, cliente_id) VALUES ('27bbfb0a-4e36-474e-b380-c1f6b5a590ef', '2026-02-22 01:04:14.315613+00', NULL, 10, 'Antepecho pasillo a C&A', 'Z 2-1', 'Johan Paz', '', '4774440417', 'arris14b2@gmail.com', NULL, '2026-02-27', '2026-02-27', 64611.99999999999, '{"tax_total": 8911.999999999993, "impuestos_detalle": [], "subtotal_antes_impuestos": 55700}', 'pendiente', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{}', '[]', 'ninguno', 0, false, '[]', '[]', '{}', NULL);
+INSERT INTO finanzas.cotizaciones (id, created_at, creado_por, espacio_id, espacio_nombre, espacio_clave, cliente_nombre, cliente_rfc, cliente_contacto, cliente_email, cliente_telefono, fecha_inicio, fecha_fin, precio_final, desglose_precios, status, numero_orden, numero_contrato, factura_pdf_url, factura_xml_url, contrato_url, url_cotizacion_final, url_orden_compra, fecha_orden_compra, datos_fiscales, conceptos_adicionales, tipo_ajuste, valor_ajuste, ajuste_es_porcentaje, desglose_impuestos, historial_pagos, datos_factura, cliente_id) VALUES ('ddb6ce65-38a9-46cc-b543-f9f98f77b03b', '2026-02-22 01:32:33.556743+00', NULL, 10, 'Antepecho pasillo a C&A', 'Z 2-1', 'Mónica Hernández Gutiérrez', '', '4791041881', 'piki_sandia@outlook.com', NULL, '2026-02-24', '2026-02-25', 64611.99999999999, '{"tax_total": 8911.999999999993, "impuestos_detalle": [], "subtotal_antes_impuestos": 55700}', 'pendiente', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{}', '[]', 'ninguno', 0, false, '[]', '[]', '{}', NULL);
+INSERT INTO finanzas.cotizaciones (id, created_at, creado_por, espacio_id, espacio_nombre, espacio_clave, cliente_nombre, cliente_rfc, cliente_contacto, cliente_email, cliente_telefono, fecha_inicio, fecha_fin, precio_final, desglose_precios, status, numero_orden, numero_contrato, factura_pdf_url, factura_xml_url, contrato_url, url_cotizacion_final, url_orden_compra, fecha_orden_compra, datos_fiscales, conceptos_adicionales, tipo_ajuste, valor_ajuste, ajuste_es_porcentaje, desglose_impuestos, historial_pagos, datos_factura, cliente_id) VALUES ('cf60b7ab-31b2-4ce4-83e1-cb1ecd3bab4d', '2026-02-22 01:37:46.508813+00', NULL, 8, 'Ave en Domo Suburbia', 'Z1-3', 'Andrea Alcantar', '', '4727385294', 'andrea_tienda99@outlook.com', NULL, '2026-02-28', '2026-02-28', 56839.99999999999, '{"tax_total": 7839.999999999993, "impuestos_detalle": [], "subtotal_antes_impuestos": 49000}', 'pendiente', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{}', '[]', 'ninguno', 0, false, '[]', '[]', '{}', NULL);
 
 
 --
@@ -139,39 +142,36 @@ INSERT INTO finanzas_casadepiedra.clientes (id, nombre_completo, telefono, corre
 
 INSERT INTO finanzas_casadepiedra.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (1, 'Limpieza', 0, true, '2026-01-27 03:55:21+00');
 INSERT INTO finanzas_casadepiedra.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (2, 'Seguridad', 0, true, '2026-01-27 03:55:31+00');
-INSERT INTO finanzas_casadepiedra.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (4, 'Generador de energ??a', 0, true, '2026-01-27 03:55:58+00');
 INSERT INTO finanzas_casadepiedra.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (3, 'Carpa SANMARINO', 100, true, '2026-01-27 03:55:45+00');
+INSERT INTO finanzas_casadepiedra.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (4, 'Generador de energía', 0, true, '2026-01-27 03:55:58+00');
 
 
 --
 -- Data for Name: cotizaciones; Type: TABLE DATA; Schema: finanzas_casadepiedra; Owner: postgres
 --
 
-INSERT INTO finanzas_casadepiedra.cotizaciones (id, created_at, creado_por, espacio_id, espacio_nombre, espacio_clave, cliente_nombre, cliente_rfc, cliente_contacto, cliente_email, fecha_inicio, fecha_fin, precio_final, desglose_precios, status, numero_orden, numero_contrato, factura_pdf_url, factura_xml_url, contrato_url, url_cotizacion_final, url_orden_compra, fecha_orden_compra, datos_fiscales, conceptos_adicionales, tipo_ajuste, valor_ajuste, ajuste_es_porcentaje, desglose_impuestos, historial_pagos, datos_factura, cliente_id, personas) VALUES ('03f5c4f1-1b12-40fb-94a2-7aa79127b65e', '2026-02-22 00:18:20.973609+00', NULL, 3, 'Terraza del Mezquite', '3465', 'Johan Jacob Paz Valadez', '', '4771631661', 'johanjacobpazvaladez@gmail.com', '2026-02-22', '2026-02-23', 29000, '{"tax_total": 0, "impuestos_detalle": [], "subtotal_antes_impuestos": 29000}', 'pendiente', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{}', '[]', 'ninguno', 0, false, '[]', '[]', '{}', NULL, 50);
-INSERT INTO finanzas_casadepiedra.cotizaciones (id, created_at, creado_por, espacio_id, espacio_nombre, espacio_clave, cliente_nombre, cliente_rfc, cliente_contacto, cliente_email, fecha_inicio, fecha_fin, precio_final, desglose_precios, status, numero_orden, numero_contrato, factura_pdf_url, factura_xml_url, contrato_url, url_cotizacion_final, url_orden_compra, fecha_orden_compra, datos_fiscales, conceptos_adicionales, tipo_ajuste, valor_ajuste, ajuste_es_porcentaje, desglose_impuestos, historial_pagos, datos_factura, cliente_id, personas) VALUES ('9b71a295-8656-4cf1-9da5-dbc83bb4bd6e', '2026-02-22 00:31:16.046096+00', NULL, 4, 'Jardín Principal', '123412', 'Prueba', '', '4775789503', 'prueba@prueba.com', '2026-02-28', '2026-02-28', 75000, '{"tax_total": 0, "impuestos_detalle": [], "subtotal_antes_impuestos": 75000}', 'pendiente', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{}', '[]', 'ninguno', 0, false, '[]', '[]', '{}', NULL, 200);
-INSERT INTO finanzas_casadepiedra.cotizaciones (id, created_at, creado_por, espacio_id, espacio_nombre, espacio_clave, cliente_nombre, cliente_rfc, cliente_contacto, cliente_email, fecha_inicio, fecha_fin, precio_final, desglose_precios, status, numero_orden, numero_contrato, factura_pdf_url, factura_xml_url, contrato_url, url_cotizacion_final, url_orden_compra, fecha_orden_compra, datos_fiscales, conceptos_adicionales, tipo_ajuste, valor_ajuste, ajuste_es_porcentaje, desglose_impuestos, historial_pagos, datos_factura, cliente_id, personas) VALUES ('0f67f0ef-5a09-4852-bb67-97afe492ab33', '2026-02-22 00:41:56.765119+00', NULL, 4, 'Jardín Principal', '123412', 'Mary arenas', '', '4776399999', 'maryarenas4791@gmail.com', '2026-03-07', '2026-03-07', 75000, '{"tax_total": 0, "impuestos_detalle": [], "subtotal_antes_impuestos": 75000}', 'pendiente', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{}', '[]', 'ninguno', 0, false, '[]', '[]', '{}', NULL, 200);
 
 
 --
 -- Data for Name: espacios; Type: TABLE DATA; Schema: finanzas_casadepiedra; Owner: postgres
 --
 
-INSERT INTO finanzas_casadepiedra.espacios (id, created_at, clave, nombre, tipo, descripcion, requisitos, imagen_url, activo, precio_base, ajuste_tipo, ajuste_porcentaje, activa, impuestos_ids, color, precios_por_dia, dias_bloqueados) VALUES (4, '2026-01-27 06:19:51.858826+00', '123412', 'Jardín Principal', 'espacio', 'Un espacio abierto, rodeado de la ic??nica arquitectura de la Ex-Hacienda aunado de una incre??ble vegetaci??n. Cuenta con capacidad m??xima para 1500 personas, es el ??nico recinto en la ciudad de Le??n que permite albergar a este gran n??mero de comensales.
-El jard??n de Casa de Piedra es el escenario perfecto para realizar eventos al aire libre en donde la naturaleza interviene como uno de los principales elementos para brindarte un ambiente encantador.', NULL, 'http://127.0.0.1:55551/storage/v1/object/public/Espacios/espacios/1771267607940.png', true, 145000, 'ninguno', 0, true, '[]', '#374151', '[{"max": 300, "min": 1, "precios": {"lunes": 36000, "jueves": 36000, "martes": 36000, "sabado": 75000, "domingo": 22000, "viernes": 50000, "miercoles": 36000}}, {"max": 900, "min": 301, "precios": {"lunes": 58000, "jueves": 58000, "martes": 58000, "sabado": 110000, "domingo": 36500, "viernes": 81500, "miercoles": 58000}}, {"max": 1500, "min": 901, "precios": {"lunes": 77000, "jueves": 77000, "martes": 77000, "sabado": 145000, "domingo": 47500, "viernes": 110500, "miercoles": 77000}}]', '[]');
-INSERT INTO finanzas_casadepiedra.espacios (id, created_at, clave, nombre, tipo, descripcion, requisitos, imagen_url, activo, precio_base, ajuste_tipo, ajuste_porcentaje, activa, impuestos_ids, color, precios_por_dia, dias_bloqueados) VALUES (2, '2026-01-27 06:19:23.498178+00', '346543', 'Salón Pavoreales', 'espacio', 'Un salón privado, que pareciera una hermosa r??plica de nuestro sal??n principal, con
-ambientaci??n delicada y elegante y la privacidad necesaria para reuniones sociales o
-empresariales. Cuenta con una capacidad para 70 personas en un evento
-empresarial, y con un montaje estilo auditorio, la capacidad incrementa para 100
- personas.', NULL, 'http://127.0.0.1:55551/storage/v1/object/public/Espacios/espacios/1771267563277.png', true, 24000, 'ninguno', 0, true, '[]', '#374151', '[{"max": 90, "min": 1, "precios": {"lunes": 12000, "jueves": 12000, "martes": 12000, "sabado": 24000, "domingo": 6000, "viernes": 18000, "miercoles": 12000}}]', '[]');
-INSERT INTO finanzas_casadepiedra.espacios (id, created_at, clave, nombre, tipo, descripcion, requisitos, imagen_url, activo, precio_base, ajuste_tipo, ajuste_porcentaje, activa, impuestos_ids, color, precios_por_dia, dias_bloqueados) VALUES (1, '2026-01-25 10:40:36.543168+00', '898', 'Salón Principal', 'espacio', 'Un espacio privado y agradable, techado, con gran iluminación y delimitado por
-elegantes muros apanelados, con capacidad para 1000 personas, se convierte en el
-escenario perfecto para eventos como bodas, xv años, conferencias y eventos
-corporativos.', NULL, 'http://127.0.0.1:55551/storage/v1/object/public/Espacios/espacios/1771267532568.png', true, 119000, 'ninguno', 0, true, '[]', '#374151', '[{"max": 400, "min": 1, "precios": {"lunes": 47000, "jueves": 47000, "martes": 47000, "sabado": 96000, "domingo": 36500, "viernes": 79000, "miercoles": 47000}}, {"max": 800, "min": 401, "precios": {"lunes": 60000, "jueves": 60000, "martes": 60000, "sabado": 119000, "domingo": 48500, "viernes": 85000, "miercoles": 60000}}]', '[]');
-INSERT INTO finanzas_casadepiedra.espacios (id, created_at, clave, nombre, tipo, descripcion, requisitos, imagen_url, activo, precio_base, ajuste_tipo, ajuste_porcentaje, activa, impuestos_ids, color, precios_por_dia, dias_bloqueados) VALUES (3, '2026-01-27 06:19:41.120497+00', '3465', 'Terraza del Mezquite', 'espacio', 'Al aire libre y enmarcada por hermosos arcos coloniales y fuentes minimalistas que
- ofrecen un ambiente de relajaci??n y vistas elegantes y acogedoras. Con una
-capacidad para 200 personas, este lugar es el espacio ideal para eventos como
- despedidas de soltera, fiestas de cumplea??os, primeras comuniones, bautizos,
- fiestas infantiles y reuniones corporativas.', NULL, 'http://127.0.0.1:55551/storage/v1/object/public/Espacios/espacios/1771267580304.png', true, 36500, 'ninguno', 0, true, '[]', '#374151', '[{"max": 150, "min": 1, "precios": {"lunes": 18000, "jueves": 18000, "martes": 18000, "sabado": 0, "domingo": 11000, "viernes": 36500, "miercoles": 18000}}]', '["sabado"]');
+INSERT INTO finanzas_casadepiedra.espacios (id, created_at, clave, nombre, tipo, descripcion, requisitos, imagen_url, activo, precio_base, ajuste_tipo, ajuste_porcentaje, activa, impuestos_ids, color, precios_por_dia, dias_bloqueados, etiquetas) VALUES (1, '2026-01-25 10:40:36.543168+00', '898', 'Salón Principal', 'espacio', 'Un espacio privado y agradable, techado, con gran iluminación y delimitado por elegantes muros apanelados, con capacidad para 1000 personas, se convierte en el escenario perfecto para eventos como bodas, xv años, conferencias y eventos corporativos.
+
+Ubicación: Por definir.
+Medidas: Por definir.', NULL, 'http://127.0.0.1:55551/storage/v1/object/public/Espacios/espacios/1771267532568.png', true, 119000, 'ninguno', 0, true, '[]', '#374151', '[{"max": 400, "min": 1, "precios": {"lunes": 47000, "jueves": 47000, "martes": 47000, "sabado": 96000, "domingo": 36500, "viernes": 79000, "miercoles": 47000}}, {"max": 800, "min": 401, "precios": {"lunes": 60000, "jueves": 60000, "martes": 60000, "sabado": 119000, "domingo": 48500, "viernes": 85000, "miercoles": 60000}}]', '[]', '["Salón", "Gran Formato", "Techado"]');
+INSERT INTO finanzas_casadepiedra.espacios (id, created_at, clave, nombre, tipo, descripcion, requisitos, imagen_url, activo, precio_base, ajuste_tipo, ajuste_porcentaje, activa, impuestos_ids, color, precios_por_dia, dias_bloqueados, etiquetas) VALUES (3, '2026-01-27 06:19:41.120497+00', '3465', 'Terraza del Mezquite', 'espacio', 'Al aire libre y enmarcada por hermosos arcos coloniales y fuentes minimalistas que ofrecen un ambiente de relajación y vistas elegantes y acogedoras. Con una capacidad para 200 personas, este lugar es el espacio ideal para eventos como despedidas de soltera, fiestas de cumpleaños, primeras comuniones, bautizos, fiestas infantiles y reuniones corporativas.
+
+Ubicación: Por definir.
+Medidas: Por definir.', NULL, 'http://127.0.0.1:55551/storage/v1/object/public/Espacios/espacios/1771267580304.png', true, 36500, 'ninguno', 0, true, '[]', '#374151', '[{"max": 150, "min": 1, "precios": {"lunes": 18000, "jueves": 18000, "martes": 18000, "sabado": 0, "domingo": 11000, "viernes": 36500, "miercoles": 18000}}]', '["sabado"]', '["Terraza", "Al aire libre", "Social"]');
+INSERT INTO finanzas_casadepiedra.espacios (id, created_at, clave, nombre, tipo, descripcion, requisitos, imagen_url, activo, precio_base, ajuste_tipo, ajuste_porcentaje, activa, impuestos_ids, color, precios_por_dia, dias_bloqueados, etiquetas) VALUES (2, '2026-01-27 06:19:23.498178+00', '346543', 'Salón Pavoreales', 'espacio', 'Un salón privado, que pareciera una hermosa réplica de nuestro salón principal, con ambientación delicada y elegante y la privacidad necesaria para reuniones sociales o empresariales. Cuenta con una capacidad para 70 personas en un evento empresarial, y con un montaje estilo auditorio, la capacidad incrementa para 100 personas.
+
+Ubicación: Por definir.
+Medidas: Por definir.', NULL, 'http://127.0.0.1:55551/storage/v1/object/public/Espacios/espacios/1771267563277.png', true, 24000, 'ninguno', 0, true, '[]', '#374151', '[{"max": 90, "min": 1, "precios": {"lunes": 12000, "jueves": 12000, "martes": 12000, "sabado": 24000, "domingo": 6000, "viernes": 18000, "miercoles": 12000}}]', '[]', '["Salón", "Privado", "Empresarial"]');
+INSERT INTO finanzas_casadepiedra.espacios (id, created_at, clave, nombre, tipo, descripcion, requisitos, imagen_url, activo, precio_base, ajuste_tipo, ajuste_porcentaje, activa, impuestos_ids, color, precios_por_dia, dias_bloqueados, etiquetas) VALUES (4, '2026-01-27 06:19:51.858826+00', '123412', 'Jardín Principal', 'espacio', 'Un espacio abierto, rodeado de la icónica arquitectura de la Ex-Hacienda aunado de una increíble vegetación. Cuenta con capacidad máxima para 1500 personas, es el único recinto en la ciudad de León que permite albergar a este gran número de comensales. El jardín de Casa de Piedra es el escenario perfecto para realizar eventos al aire libre en donde la naturaleza interviene como uno de los principales elementos para brindarte un ambiente encantador.
+
+Ubicación: Por definir.
+Medidas: Por definir.', NULL, 'http://127.0.0.1:55551/storage/v1/object/public/Espacios/espacios/1771267607940.png', true, 145000, 'ninguno', 0, true, '[]', '#374151', '[{"max": 300, "min": 1, "precios": {"lunes": 36000, "jueves": 36000, "martes": 36000, "sabado": 75000, "domingo": 22000, "viernes": 50000, "miercoles": 36000}}, {"max": 900, "min": 301, "precios": {"lunes": 58000, "jueves": 58000, "martes": 58000, "sabado": 110000, "domingo": 36500, "viernes": 81500, "miercoles": 58000}}, {"max": 1500, "min": 901, "precios": {"lunes": 77000, "jueves": 77000, "martes": 77000, "sabado": 145000, "domingo": 47500, "viernes": 110500, "miercoles": 77000}}]', '[]', '["Jardín", "Al aire libre", "Gran Formato"]');
 
 
 --
@@ -236,5 +236,5 @@ SELECT pg_catalog.setval('finanzas_casadepiedra.impuestos_id_seq', 1, true);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict CqZRjsuwBEj8WJ5aRuOxY2PO3bgs6gk2sqLcCBA5MrVD1NjHjxQyFoNYnBUZ1yw
+\unrestrict a7jWMe59lsUrb51vP7aQqdrQfAqy1j8mFOuctbKlWXqWGlw9NUebCJBHVuaw8WZ
 
