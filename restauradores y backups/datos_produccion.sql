@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict pGrYWjkPVrcZkV65VQrcx6V6yDFBtljz1vJBbkwLljTwlKbQjjCvghQyu8Ysxbs
+\restrict 1R0f1uIC9upbTwQd9fOib8QviOa4M55JFQbf5VQpwToXSjc6bUYWE4Iz3ZTAOB7
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -22,6 +22,10 @@ SET row_security = off;
 --
 -- Data for Name: audit_log_entries; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
+
+SET SESSION AUTHORIZATION DEFAULT;
+
+ALTER TABLE auth.audit_log_entries DISABLE TRIGGER ALL;
 
 INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'db6843a8-964f-416a-8bfc-bbd000735c84', '{"action":"user_signedup","actor_id":"00000000-0000-0000-0000-000000000000","actor_username":"service_role","actor_via_sso":false,"log_type":"team","traits":{"provider":"email","user_email":"admin@cotizador.com","user_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","user_phone":""}}', '2026-02-14 21:12:20.652115+00', '');
 INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '73d7fab6-e888-46f4-9d9f-2482150766df', '{"action":"login","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-14 21:12:27.187437+00', '');
@@ -89,95 +93,151 @@ INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_add
 INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'd2629cea-6f23-4230-9657-060009bf665f', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-23 13:19:07.501049+00', '');
 
 
+ALTER TABLE auth.audit_log_entries ENABLE TRIGGER ALL;
+
 --
 -- Data for Name: flow_state; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.flow_state DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.flow_state ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: users; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
+
+ALTER TABLE auth.users DISABLE TRIGGER ALL;
 
 INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, invited_at, confirmation_token, confirmation_sent_at, recovery_token, recovery_sent_at, email_change_token_new, email_change, email_change_sent_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, phone, phone_confirmed_at, phone_change, phone_change_token, phone_change_sent_at, email_change_token_current, email_change_confirm_status, banned_until, reauthentication_token, reauthentication_sent_at, is_sso_user, deleted_at, is_anonymous) VALUES ('00000000-0000-0000-0000-000000000000', '9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0', 'authenticated', 'authenticated', 'admin@plazamayor.com', '$2a$10$c7sQRjMmvT1wkycMS4cP3OQpQeazHwVIGigusfiHnKfmoI/sLM67K', '2026-02-16 21:40:39.269764+00', NULL, '', NULL, '', NULL, '', '', NULL, '2026-02-16 22:47:49.793702+00', '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-02-16 21:40:39.199911+00', '2026-02-16 22:47:49.801613+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
 INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, invited_at, confirmation_token, confirmation_sent_at, recovery_token, recovery_sent_at, email_change_token_new, email_change, email_change_sent_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, phone, phone_confirmed_at, phone_change, phone_change_token, phone_change_sent_at, email_change_token_current, email_change_confirm_status, banned_until, reauthentication_token, reauthentication_sent_at, is_sso_user, deleted_at, is_anonymous) VALUES ('00000000-0000-0000-0000-000000000000', '1b099fcd-164b-49dc-af4a-c64f4b16961d', 'authenticated', 'authenticated', 'admin@casadepiedra.com', '$2a$10$dACIeFDOpmNSpnTFq.3w9eFgkD44GuwHRRB/PLLPdv5nLi33TjRNK', '2026-02-16 22:36:58.203281+00', NULL, '', NULL, '', NULL, '', '', NULL, '2026-02-16 22:52:12.700844+00', '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-02-16 22:36:58.18393+00', '2026-02-16 22:52:12.705347+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
 INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, invited_at, confirmation_token, confirmation_sent_at, recovery_token, recovery_sent_at, email_change_token_new, email_change, email_change_sent_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, phone, phone_confirmed_at, phone_change, phone_change_token, phone_change_sent_at, email_change_token_current, email_change_confirm_status, banned_until, reauthentication_token, reauthentication_sent_at, is_sso_user, deleted_at, is_anonymous) VALUES ('00000000-0000-0000-0000-000000000000', '2d353feb-16d5-43fb-9529-d1334f4c6059', 'authenticated', 'authenticated', 'admin@cotizador.com', '$2a$10$Q3ftpiGxXHCMuIGH0Z7BI.KFU6zrVJCNv/7hL5GsDpGfJQCwS4oGO', '2026-02-14 21:12:20.675521+00', NULL, '', NULL, '', NULL, '', '', NULL, '2026-02-16 23:06:27.601263+00', '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-02-14 21:12:20.567887+00', '2026-02-23 13:19:07.510251+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
 
 
+ALTER TABLE auth.users ENABLE TRIGGER ALL;
+
 --
 -- Data for Name: identities; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
+
+ALTER TABLE auth.identities DISABLE TRIGGER ALL;
 
 INSERT INTO auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, id) VALUES ('2d353feb-16d5-43fb-9529-d1334f4c6059', '2d353feb-16d5-43fb-9529-d1334f4c6059', '{"sub": "2d353feb-16d5-43fb-9529-d1334f4c6059", "email": "admin@cotizador.com", "email_verified": false, "phone_verified": false}', 'email', '2026-02-14 21:12:20.639345+00', '2026-02-14 21:12:20.639754+00', '2026-02-14 21:12:20.639754+00', 'cbdaa093-acfc-4740-902e-381bbd6fc375');
 INSERT INTO auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, id) VALUES ('9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0', '9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0', '{"sub": "9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0", "email": "admin@plazamayor.com", "email_verified": false, "phone_verified": false}', 'email', '2026-02-16 21:40:39.259102+00', '2026-02-16 21:40:39.259625+00', '2026-02-16 21:40:39.259625+00', '8bcc7013-a598-44c7-b9d0-77b7c0220616');
 INSERT INTO auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, id) VALUES ('1b099fcd-164b-49dc-af4a-c64f4b16961d', '1b099fcd-164b-49dc-af4a-c64f4b16961d', '{"sub": "1b099fcd-164b-49dc-af4a-c64f4b16961d", "email": "admin@casadepiedra.com", "email_verified": false, "phone_verified": false}', 'email', '2026-02-16 22:36:58.193872+00', '2026-02-16 22:36:58.193934+00', '2026-02-16 22:36:58.193934+00', '75cd4b7f-bab8-40ca-9b89-7c25fa7d08a4');
 
 
+ALTER TABLE auth.identities ENABLE TRIGGER ALL;
+
 --
 -- Data for Name: instances; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.instances DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.instances ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: oauth_clients; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.oauth_clients DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.oauth_clients ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: sessions; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.sessions DISABLE TRIGGER ALL;
+
 INSERT INTO auth.sessions (id, user_id, created_at, updated_at, factor_id, aal, not_after, refreshed_at, user_agent, ip, tag, oauth_client_id, refresh_token_hmac_key, refresh_token_counter, scopes) VALUES ('d4f782a5-d244-47fe-8dbc-c0b87f97e58d', '2d353feb-16d5-43fb-9529-d1334f4c6059', '2026-02-16 23:06:27.601371+00', '2026-02-23 13:19:07.516146+00', NULL, 'aal1', NULL, '2026-02-23 13:19:07.515895', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 OPR/127.0.0.0 (Edition std-2)', '172.18.0.1', NULL, NULL, NULL, NULL, NULL);
 
+
+ALTER TABLE auth.sessions ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: mfa_amr_claims; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.mfa_amr_claims DISABLE TRIGGER ALL;
+
 INSERT INTO auth.mfa_amr_claims (session_id, created_at, updated_at, authentication_method, id) VALUES ('d4f782a5-d244-47fe-8dbc-c0b87f97e58d', '2026-02-16 23:06:27.606452+00', '2026-02-16 23:06:27.606452+00', 'password', '6a768e2c-06a7-4597-adc5-621dab28145e');
 
+
+ALTER TABLE auth.mfa_amr_claims ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: mfa_factors; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.mfa_factors DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.mfa_factors ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: mfa_challenges; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.mfa_challenges DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.mfa_challenges ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: oauth_authorizations; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.oauth_authorizations DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.oauth_authorizations ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: oauth_client_states; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.oauth_client_states DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.oauth_client_states ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: oauth_consents; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.oauth_consents DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.oauth_consents ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: one_time_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.one_time_tokens DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.one_time_tokens ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: refresh_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
+
+ALTER TABLE auth.refresh_tokens DISABLE TRIGGER ALL;
 
 INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 14, '3q4e5ufd3jto', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-16 23:06:27.604074+00', '2026-02-18 21:16:33.354873+00', NULL, 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
 INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 15, '74mph6sxiwtj', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-18 21:16:33.35702+00', '2026-02-19 19:31:28.975503+00', '3q4e5ufd3jto', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
@@ -200,27 +260,43 @@ INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, creat
 INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 64, 'z265vzutskil', '2d353feb-16d5-43fb-9529-d1334f4c6059', false, '2026-02-23 13:19:07.505598+00', '2026-02-23 13:19:07.505598+00', 'yuctgxr4sssv', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
 
 
+ALTER TABLE auth.refresh_tokens ENABLE TRIGGER ALL;
+
 --
 -- Data for Name: sso_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.sso_providers DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.sso_providers ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: saml_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.saml_providers DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.saml_providers ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: saml_relay_states; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.saml_relay_states DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.saml_relay_states ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: schema_migrations; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
+
+ALTER TABLE auth.schema_migrations DISABLE TRIGGER ALL;
 
 INSERT INTO auth.schema_migrations (version) VALUES ('20171026211738');
 INSERT INTO auth.schema_migrations (version) VALUES ('20171026211808');
@@ -298,22 +374,34 @@ INSERT INTO auth.schema_migrations (version) VALUES ('20260115000000');
 INSERT INTO auth.schema_migrations (version) VALUES ('20260121000000');
 
 
+ALTER TABLE auth.schema_migrations ENABLE TRIGGER ALL;
+
 --
 -- Data for Name: sso_domains; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
+ALTER TABLE auth.sso_domains DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE auth.sso_domains ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: clientes; Type: TABLE DATA; Schema: finanzas; Owner: postgres
 --
 
+ALTER TABLE finanzas.clientes DISABLE TRIGGER ALL;
+
 INSERT INTO finanzas.clientes (id, nombre_completo, telefono, correo, rfc, created_at, updated_at) VALUES ('2997e5c2-62c3-40ec-8c1f-1da0c20380ae', 'Johan Jacob Paz Valadez', '4771631661', 'johan_paz@hotmail.es', 'PAVJ011113PB6', '2026-01-26 23:37:50.548335+00', '2026-01-26 23:37:50.548335+00');
 
+
+ALTER TABLE finanzas.clientes ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: conceptos_catalogo; Type: TABLE DATA; Schema: finanzas; Owner: postgres
 --
+
+ALTER TABLE finanzas.conceptos_catalogo DISABLE TRIGGER ALL;
 
 INSERT INTO finanzas.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (1, 'Limpieza', 0, true, '2025-12-19 08:29:59.031025+00');
 INSERT INTO finanzas.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (3, 'Mobiliario', 0, true, '2025-12-19 08:30:57.056834+00');
@@ -321,9 +409,13 @@ INSERT INTO finanzas.conceptos_catalogo (id, nombre, precio_sugerido, activo, cr
 INSERT INTO finanzas.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (5, 'Instalación', 0, true, '2025-12-19 08:36:01.791921+00');
 
 
+ALTER TABLE finanzas.conceptos_catalogo ENABLE TRIGGER ALL;
+
 --
 -- Data for Name: espacios; Type: TABLE DATA; Schema: finanzas; Owner: postgres
 --
+
+ALTER TABLE finanzas.espacios DISABLE TRIGGER ALL;
 
 INSERT INTO finanzas.espacios (id, created_at, clave, nombre, tipo, descripcion, requisitos, imagen_url, activo, precio_base, ajuste_tipo, ajuste_porcentaje, activa, impuestos_ids, color, etiquetas) VALUES (7, '2025-12-20 07:04:29.567599+00', 'Z1-2', 'Muro a un lado de Samsung y Zara', 'publicidad', 'Ubicación: En zona 1 en el acceso a zona 3, a un costado de Coloso y Zara.
 Material: Por definir.
@@ -396,9 +488,13 @@ Material: Vinil.
 Medidas: Por definir.', NULL, NULL, true, 40000, 'ninguno', 0, true, '[1]', '#e6a800', '["Estacionamiento", "Paquete", "Vinil"]');
 
 
+ALTER TABLE finanzas.espacios ENABLE TRIGGER ALL;
+
 --
 -- Data for Name: cotizaciones; Type: TABLE DATA; Schema: finanzas; Owner: postgres
 --
+
+ALTER TABLE finanzas.cotizaciones DISABLE TRIGGER ALL;
 
 INSERT INTO finanzas.cotizaciones (id, created_at, creado_por, espacio_id, espacio_nombre, espacio_clave, cliente_nombre, cliente_rfc, cliente_contacto, cliente_email, cliente_telefono, fecha_inicio, fecha_fin, precio_final, desglose_precios, status, numero_orden, numero_contrato, factura_pdf_url, factura_xml_url, contrato_url, url_cotizacion_final, url_orden_compra, fecha_orden_compra, datos_fiscales, conceptos_adicionales, tipo_ajuste, valor_ajuste, ajuste_es_porcentaje, desglose_impuestos, historial_pagos, datos_factura, cliente_id) VALUES ('539b8961-8237-45ed-85eb-0b7eec808ee1', '2026-02-22 00:55:17.325073+00', NULL, 10, 'Antepecho pasillo a C&A', 'Z 2-1', 'Johan Jacob Paz Valadez', '', '345345', '345', NULL, '2026-02-21', '2026-02-28', 64611.99999999999, '{"tax_total": 8911.999999999993, "impuestos_detalle": [], "subtotal_antes_impuestos": 55700}', 'pendiente', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{}', '[]', 'ninguno', 0, false, '[]', '[]', '{}', NULL);
 INSERT INTO finanzas.cotizaciones (id, created_at, creado_por, espacio_id, espacio_nombre, espacio_clave, cliente_nombre, cliente_rfc, cliente_contacto, cliente_email, cliente_telefono, fecha_inicio, fecha_fin, precio_final, desglose_precios, status, numero_orden, numero_contrato, factura_pdf_url, factura_xml_url, contrato_url, url_cotizacion_final, url_orden_compra, fecha_orden_compra, datos_fiscales, conceptos_adicionales, tipo_ajuste, valor_ajuste, ajuste_es_porcentaje, desglose_impuestos, historial_pagos, datos_factura, cliente_id) VALUES ('27bbfb0a-4e36-474e-b380-c1f6b5a590ef', '2026-02-22 01:04:14.315613+00', NULL, 10, 'Antepecho pasillo a C&A', 'Z 2-1', 'Johan Paz', '', '4774440417', 'arris14b2@gmail.com', NULL, '2026-02-27', '2026-02-27', 64611.99999999999, '{"tax_total": 8911.999999999993, "impuestos_detalle": [], "subtotal_antes_impuestos": 55700}', 'pendiente', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{}', '[]', 'ninguno', 0, false, '[]', '[]', '{}', NULL);
@@ -406,24 +502,36 @@ INSERT INTO finanzas.cotizaciones (id, created_at, creado_por, espacio_id, espac
 INSERT INTO finanzas.cotizaciones (id, created_at, creado_por, espacio_id, espacio_nombre, espacio_clave, cliente_nombre, cliente_rfc, cliente_contacto, cliente_email, cliente_telefono, fecha_inicio, fecha_fin, precio_final, desglose_precios, status, numero_orden, numero_contrato, factura_pdf_url, factura_xml_url, contrato_url, url_cotizacion_final, url_orden_compra, fecha_orden_compra, datos_fiscales, conceptos_adicionales, tipo_ajuste, valor_ajuste, ajuste_es_porcentaje, desglose_impuestos, historial_pagos, datos_factura, cliente_id) VALUES ('cf60b7ab-31b2-4ce4-83e1-cb1ecd3bab4d', '2026-02-22 01:37:46.508813+00', NULL, 8, 'Ave en Domo Suburbia', 'Z1-3', 'Andrea Alcantar', '', '4727385294', 'andrea_tienda99@outlook.com', NULL, '2026-02-28', '2026-02-28', 56839.99999999999, '{"tax_total": 7839.999999999993, "impuestos_detalle": [], "subtotal_antes_impuestos": 49000}', 'pendiente', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{}', '[]', 'ninguno', 0, false, '[]', '[]', '{}', NULL);
 
 
+ALTER TABLE finanzas.cotizaciones ENABLE TRIGGER ALL;
+
 --
 -- Data for Name: impuestos; Type: TABLE DATA; Schema: finanzas; Owner: postgres
 --
 
+ALTER TABLE finanzas.impuestos DISABLE TRIGGER ALL;
+
 INSERT INTO finanzas.impuestos (id, nombre, porcentaje, activo, created_at, impuestos_aplicados) VALUES (1, 'IVA', 16, true, '2025-12-20 05:00:37.668293+00', NULL);
 
+
+ALTER TABLE finanzas.impuestos ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: clientes; Type: TABLE DATA; Schema: finanzas_casadepiedra; Owner: postgres
 --
 
+ALTER TABLE finanzas_casadepiedra.clientes DISABLE TRIGGER ALL;
+
 INSERT INTO finanzas_casadepiedra.clientes (id, nombre_completo, telefono, correo, rfc, created_at, updated_at) VALUES ('b51df6c1-e0f1-4860-904d-8b03cd055d79', 'Johan Jacob Paz Valadez', '4771631661', 'johanjacobpazvaladez@gmail.com', 'PAVJ011113PB6', '2026-01-26 23:50:37.517036+00', '2026-01-26 23:50:37.517036+00');
 INSERT INTO finanzas_casadepiedra.clientes (id, nombre_completo, telefono, correo, rfc, created_at, updated_at) VALUES ('a3299bd7-16d6-45aa-b187-8a5856697255', 'Emma Valadez Medina', '4772309481', 'adsasdasd@asdads.com', 'PAVJ011113PB4', '2026-02-12 05:24:40.57242+00', '2026-02-12 05:24:40.57242+00');
 
 
+ALTER TABLE finanzas_casadepiedra.clientes ENABLE TRIGGER ALL;
+
 --
 -- Data for Name: conceptos_catalogo; Type: TABLE DATA; Schema: finanzas_casadepiedra; Owner: postgres
 --
+
+ALTER TABLE finanzas_casadepiedra.conceptos_catalogo DISABLE TRIGGER ALL;
 
 INSERT INTO finanzas_casadepiedra.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (1, 'Limpieza', 0, true, '2026-01-27 03:55:21+00');
 INSERT INTO finanzas_casadepiedra.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (2, 'Seguridad', 0, true, '2026-01-27 03:55:31+00');
@@ -431,15 +539,23 @@ INSERT INTO finanzas_casadepiedra.conceptos_catalogo (id, nombre, precio_sugerid
 INSERT INTO finanzas_casadepiedra.conceptos_catalogo (id, nombre, precio_sugerido, activo, created_at) VALUES (4, 'Generador de energía', 0, true, '2026-01-27 03:55:58+00');
 
 
+ALTER TABLE finanzas_casadepiedra.conceptos_catalogo ENABLE TRIGGER ALL;
+
 --
 -- Data for Name: cotizaciones; Type: TABLE DATA; Schema: finanzas_casadepiedra; Owner: postgres
 --
 
+ALTER TABLE finanzas_casadepiedra.cotizaciones DISABLE TRIGGER ALL;
 
+
+
+ALTER TABLE finanzas_casadepiedra.cotizaciones ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: espacios; Type: TABLE DATA; Schema: finanzas_casadepiedra; Owner: postgres
 --
+
+ALTER TABLE finanzas_casadepiedra.espacios DISABLE TRIGGER ALL;
 
 INSERT INTO finanzas_casadepiedra.espacios (id, created_at, clave, nombre, tipo, descripcion, requisitos, imagen_url, activo, precio_base, ajuste_tipo, ajuste_porcentaje, activa, impuestos_ids, color, precios_por_dia, dias_bloqueados, etiquetas) VALUES (1, '2026-01-25 10:40:36.543168+00', '898', 'Salón Principal', 'espacio', 'Un espacio privado y agradable, techado, con gran iluminación y delimitado por elegantes muros apanelados, con capacidad para 1000 personas, se convierte en el escenario perfecto para eventos como bodas, xv años, conferencias y eventos corporativos.
 
@@ -459,21 +575,31 @@ Ubicación: Por definir.
 Medidas: Por definir.', NULL, 'http://127.0.0.1:55551/storage/v1/object/public/Espacios/espacios/1771267607940.png', true, 145000, 'ninguno', 0, true, '[]', '#374151', '[{"max": 300, "min": 1, "precios": {"lunes": 36000, "jueves": 36000, "martes": 36000, "sabado": 75000, "domingo": 22000, "viernes": 50000, "miercoles": 36000}}, {"max": 900, "min": 301, "precios": {"lunes": 58000, "jueves": 58000, "martes": 58000, "sabado": 110000, "domingo": 36500, "viernes": 81500, "miercoles": 58000}}, {"max": 1500, "min": 901, "precios": {"lunes": 77000, "jueves": 77000, "martes": 77000, "sabado": 145000, "domingo": 47500, "viernes": 110500, "miercoles": 77000}}]', '[]', '["Jardín", "Al aire libre", "Gran Formato"]');
 
 
+ALTER TABLE finanzas_casadepiedra.espacios ENABLE TRIGGER ALL;
+
 --
 -- Data for Name: impuestos; Type: TABLE DATA; Schema: finanzas_casadepiedra; Owner: postgres
 --
 
+ALTER TABLE finanzas_casadepiedra.impuestos DISABLE TRIGGER ALL;
+
 INSERT INTO finanzas_casadepiedra.impuestos (id, nombre, porcentaje, activo, created_at, impuestos_aplicados) VALUES (1, 'IVA', 16, true, '2026-01-25 10:41:36+00', NULL);
 
+
+ALTER TABLE finanzas_casadepiedra.impuestos ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: profiles; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+ALTER TABLE public.profiles DISABLE TRIGGER ALL;
+
 INSERT INTO public.profiles (id, email, username, role, tenant, app_metadata, created_at, updated_at, allowed_tenants) VALUES ('2d353feb-16d5-43fb-9529-d1334f4c6059', 'admin@cotizador.com', 'admin', 'admin', 'plaza_mayor', '{}', '2026-02-14 21:12:20.560271+00', '2026-02-14 21:14:51.558573+00', '{plaza_mayor,casa_de_piedra}');
 INSERT INTO public.profiles (id, email, username, role, tenant, app_metadata, created_at, updated_at, allowed_tenants) VALUES ('1b099fcd-164b-49dc-af4a-c64f4b16961d', 'admin@casadepiedra.com', 'admin Casa de Piedra', 'casa_de_piedra', 'casa_de_piedra', '{}', '2026-02-16 22:36:58.182798+00', '2026-02-16 22:47:20.699165+00', '{casa_de_piedra}');
 INSERT INTO public.profiles (id, email, username, role, tenant, app_metadata, created_at, updated_at, allowed_tenants) VALUES ('9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0', 'admin@plazamayor.com', 'admin plaza mayor', 'plaza_mayor', 'plaza_mayor', '{}', '2026-02-16 21:40:39.19873+00', '2026-02-16 22:47:34.161357+00', '{plaza_mayor}');
 
+
+ALTER TABLE public.profiles ENABLE TRIGGER ALL;
 
 --
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: supabase_auth_admin
@@ -528,5 +654,5 @@ SELECT pg_catalog.setval('finanzas_casadepiedra.impuestos_id_seq', 1, true);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict pGrYWjkPVrcZkV65VQrcx6V6yDFBtljz1vJBbkwLljTwlKbQjjCvghQyu8Ysxbs
+\unrestrict 1R0f1uIC9upbTwQd9fOib8QviOa4M55JFQbf5VQpwToXSjc6bUYWE4Iz3ZTAOB7
 
