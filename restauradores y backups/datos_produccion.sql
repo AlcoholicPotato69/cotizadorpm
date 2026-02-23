@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict a7jWMe59lsUrb51vP7aQqdrQfAqy1j8mFOuctbKlWXqWGlw9NUebCJBHVuaw8WZ
+\restrict pGrYWjkPVrcZkV65VQrcx6V6yDFBtljz1vJBbkwLljTwlKbQjjCvghQyu8Ysxbs
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -18,6 +18,291 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+
+--
+-- Data for Name: audit_log_entries; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'db6843a8-964f-416a-8bfc-bbd000735c84', '{"action":"user_signedup","actor_id":"00000000-0000-0000-0000-000000000000","actor_username":"service_role","actor_via_sso":false,"log_type":"team","traits":{"provider":"email","user_email":"admin@cotizador.com","user_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","user_phone":""}}', '2026-02-14 21:12:20.652115+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '73d7fab6-e888-46f4-9d9f-2482150766df', '{"action":"login","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-14 21:12:27.187437+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '614e7993-519d-49f2-9e1c-37fd5838d3fe', '{"action":"login","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-15 09:23:27.673824+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '599e31c8-b101-4d6e-af93-86369e1fd02b', '{"action":"logout","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"account"}', '2026-02-15 09:25:26.397374+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '9c3f762a-4d24-4c18-a524-92bca734c98b', '{"action":"login","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-15 09:25:32.72583+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'b2b53055-b6a4-447c-8b5f-125cc4d0872d', '{"action":"login","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-16 17:48:25.259297+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'ec30c267-98fe-4f22-880a-474e64010f2a', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-16 18:47:41.769562+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '1972f5f4-2979-44f8-8b8e-61139b542713', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-16 18:47:41.782281+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'b70e56d2-42be-43bd-86a1-e1bf1b789c3d', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-16 19:46:47.504717+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '390d805f-747e-4439-9e46-c9712841a670', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-16 19:46:47.506475+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'a4da7124-c27c-4e03-9f5d-fd5bc0538560', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-16 20:48:14.347207+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '0f03e768-f077-4b4d-9f60-7eb4a358a9e4', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-16 20:48:14.349412+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'e62889f0-7a9e-4fb6-a891-b50800abdcd9', '{"action":"user_signedup","actor_id":"00000000-0000-0000-0000-000000000000","actor_username":"service_role","actor_via_sso":false,"log_type":"team","traits":{"provider":"email","user_email":"admin@plazamayor.com","user_id":"9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0","user_phone":""}}', '2026-02-16 21:40:39.263787+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'a5469f03-4ad3-492d-a8e6-901ff9356972', '{"action":"logout","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"account"}', '2026-02-16 21:40:44.713231+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '964d2aa0-7039-4b93-8339-9b471edb30ff', '{"action":"login","actor_id":"9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0","actor_username":"admin@plazamayor.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-16 21:41:00.318538+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'ee7d8190-5c92-4d7f-9fb1-928f84014765', '{"action":"logout","actor_id":"9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0","actor_username":"admin@plazamayor.com","actor_via_sso":false,"log_type":"account"}', '2026-02-16 21:41:29.124333+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'bacc6d66-fb25-46a9-9401-8dee4199ca95', '{"action":"login","actor_id":"9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0","actor_username":"admin@plazamayor.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-16 22:22:28.226584+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '5f93f494-eec7-469a-9616-c4adaef3b3ef', '{"action":"user_signedup","actor_id":"00000000-0000-0000-0000-000000000000","actor_username":"service_role","actor_via_sso":false,"log_type":"team","traits":{"provider":"email","user_email":"admin@casadepiedra.com","user_id":"1b099fcd-164b-49dc-af4a-c64f4b16961d","user_phone":""}}', '2026-02-16 22:36:58.19672+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '7b800c0d-48a5-40eb-b9af-b55eadd28237', '{"action":"logout","actor_id":"9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0","actor_username":"admin@plazamayor.com","actor_via_sso":false,"log_type":"account"}', '2026-02-16 22:38:31.342051+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'e347fb7d-2517-4534-b6ec-d6180432d94b', '{"action":"login","actor_id":"1b099fcd-164b-49dc-af4a-c64f4b16961d","actor_username":"admin@casadepiedra.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-16 22:38:42.289287+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '80ed6f46-b954-4951-b3c5-63b9ae7a655d', '{"action":"logout","actor_id":"1b099fcd-164b-49dc-af4a-c64f4b16961d","actor_username":"admin@casadepiedra.com","actor_via_sso":false,"log_type":"account"}', '2026-02-16 22:47:45.148694+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'e48a2c57-d379-4e57-b4c5-7c9ccb89bd28', '{"action":"login","actor_id":"9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0","actor_username":"admin@plazamayor.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-16 22:47:49.790493+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '4535226c-6250-4da4-93b8-e2b6fa7e0b24', '{"action":"logout","actor_id":"9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0","actor_username":"admin@plazamayor.com","actor_via_sso":false,"log_type":"account"}', '2026-02-16 22:50:11.154903+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'd2517421-efeb-48b1-b6ca-33df234580ab', '{"action":"login","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-16 22:50:17.09513+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'f3f61fbd-d1f3-4ca1-a4e2-87cdc1de5bd2', '{"action":"logout","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"account"}', '2026-02-16 22:52:07.671066+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '498b44c7-1c86-4ac5-ae42-badf1f1c8d4d', '{"action":"login","actor_id":"1b099fcd-164b-49dc-af4a-c64f4b16961d","actor_username":"admin@casadepiedra.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-16 22:52:12.699237+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '9c96b49d-4fd7-4bf0-af2e-43191ec20a06', '{"action":"logout","actor_id":"1b099fcd-164b-49dc-af4a-c64f4b16961d","actor_username":"admin@casadepiedra.com","actor_via_sso":false,"log_type":"account"}', '2026-02-16 23:06:20.693904+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '30b6100d-f11e-45c8-b449-e9b7e355a5e7', '{"action":"login","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"account","traits":{"provider":"email"}}', '2026-02-16 23:06:27.59878+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '3af32257-ee20-44a7-a4c3-328e74ce48d7', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-18 21:16:33.343211+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '9235b95e-324e-4e2c-9bba-25d6cd23c0a7', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-18 21:16:33.352483+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '7d1b3840-739e-4332-853d-9a124793cada', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-19 19:31:28.918596+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '47ef23ab-e769-4766-947b-789971cbd5c6', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-19 19:31:28.971339+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'a4bb6a4c-c191-4646-9b9b-cb537c3cf2ed', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-19 20:30:56.098577+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '7336b6b6-3424-425d-baa2-3cd3998f60f5', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-19 20:30:56.100229+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'ab429c1c-a181-4e37-9243-92ad03550421', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-19 21:29:29.404434+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '9bec2f00-b159-4477-90c4-d5ee8d693f21', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-19 21:29:29.406628+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '9041cab9-2e20-4dd6-9669-d909cf135499', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-19 22:27:31.491789+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'f82cef7d-9bba-4919-9ce2-9a3a066876c9', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-19 22:27:31.496447+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '8cf92781-a388-4cc3-81d0-f994aa948619', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-19 23:26:11.158636+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'f3a68fef-f236-4b87-861b-1934df8086fa', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-19 23:26:11.168536+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '9e1d56b5-4d40-4a75-b077-d5b4394dc4cb', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-20 00:25:05.879758+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '24afebc8-c04f-4221-a423-253605f12951', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-20 00:25:05.887009+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'b4ccd5ad-3077-4c41-898a-2e14d9af2de6', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-20 19:23:03.005598+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '73687178-ed8a-4ef7-b7e4-40a82030a1b9', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-20 19:23:03.007889+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '5dc668bc-28f3-4ab3-8107-196130fbf65f', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-20 20:21:08.611298+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'e8e66ca9-cbbf-4034-b024-82d37c435eb3', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-20 20:21:08.611953+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '7bdf60ab-03e3-4d41-8e31-10c94756adda', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-20 21:42:23.566579+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '68ec64cf-6d9e-4536-9c02-4997766daad4', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-20 21:42:23.568087+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '861b1f14-ddd4-4fc6-8ebe-b5b71e87b421', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-21 19:22:57.419163+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '853fea13-8dce-4d27-b1dd-0fe6ae6c45f0', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-21 19:22:57.421626+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'c6842629-82f3-4348-8a19-4ce543147691', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-21 21:49:55.309633+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '4f59f89f-23d1-487b-92c0-ac533894632c', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-21 21:49:55.312355+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '26405c01-fe24-47ac-afd3-50ca9bee9e32', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-21 22:48:11.458505+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'f242cd63-82c4-43cf-9aa6-01d3e8d4ece2', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-21 22:48:11.483556+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '830e3cdb-9762-42b8-a029-e9020dcc074f', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-21 23:47:55.886651+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'e40cd795-66fb-481e-8bec-fe6e381ac5cf', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-21 23:47:55.888041+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '936d38e3-0ae7-477c-8c1b-3b9aca566b73', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-22 00:47:12.948775+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'f58d54fd-9d21-4847-9069-d4d2a60420a1', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-22 00:47:12.952031+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '80a0c37e-a181-41dc-a922-0083617feacd', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-22 01:45:25.372304+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'e324005d-a3da-4745-b9e1-dc1c7ef84318', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-22 01:45:25.375256+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'f819ae97-667c-415e-8b4f-a55bcf26b4c4', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-22 21:58:23.081556+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '0f57f046-b360-4acf-a5a2-2d8f56705ad1', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-22 21:58:23.086359+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', '2c8778d4-7e3a-4558-9342-b2124ed00dd3', '{"action":"token_refreshed","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-23 13:19:07.493238+00', '');
+INSERT INTO auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) VALUES ('00000000-0000-0000-0000-000000000000', 'd2629cea-6f23-4230-9657-060009bf665f', '{"action":"token_revoked","actor_id":"2d353feb-16d5-43fb-9529-d1334f4c6059","actor_username":"admin@cotizador.com","actor_via_sso":false,"log_type":"token"}', '2026-02-23 13:19:07.501049+00', '');
+
+
+--
+-- Data for Name: flow_state; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, invited_at, confirmation_token, confirmation_sent_at, recovery_token, recovery_sent_at, email_change_token_new, email_change, email_change_sent_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, phone, phone_confirmed_at, phone_change, phone_change_token, phone_change_sent_at, email_change_token_current, email_change_confirm_status, banned_until, reauthentication_token, reauthentication_sent_at, is_sso_user, deleted_at, is_anonymous) VALUES ('00000000-0000-0000-0000-000000000000', '9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0', 'authenticated', 'authenticated', 'admin@plazamayor.com', '$2a$10$c7sQRjMmvT1wkycMS4cP3OQpQeazHwVIGigusfiHnKfmoI/sLM67K', '2026-02-16 21:40:39.269764+00', NULL, '', NULL, '', NULL, '', '', NULL, '2026-02-16 22:47:49.793702+00', '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-02-16 21:40:39.199911+00', '2026-02-16 22:47:49.801613+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
+INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, invited_at, confirmation_token, confirmation_sent_at, recovery_token, recovery_sent_at, email_change_token_new, email_change, email_change_sent_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, phone, phone_confirmed_at, phone_change, phone_change_token, phone_change_sent_at, email_change_token_current, email_change_confirm_status, banned_until, reauthentication_token, reauthentication_sent_at, is_sso_user, deleted_at, is_anonymous) VALUES ('00000000-0000-0000-0000-000000000000', '1b099fcd-164b-49dc-af4a-c64f4b16961d', 'authenticated', 'authenticated', 'admin@casadepiedra.com', '$2a$10$dACIeFDOpmNSpnTFq.3w9eFgkD44GuwHRRB/PLLPdv5nLi33TjRNK', '2026-02-16 22:36:58.203281+00', NULL, '', NULL, '', NULL, '', '', NULL, '2026-02-16 22:52:12.700844+00', '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-02-16 22:36:58.18393+00', '2026-02-16 22:52:12.705347+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
+INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, invited_at, confirmation_token, confirmation_sent_at, recovery_token, recovery_sent_at, email_change_token_new, email_change, email_change_sent_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, phone, phone_confirmed_at, phone_change, phone_change_token, phone_change_sent_at, email_change_token_current, email_change_confirm_status, banned_until, reauthentication_token, reauthentication_sent_at, is_sso_user, deleted_at, is_anonymous) VALUES ('00000000-0000-0000-0000-000000000000', '2d353feb-16d5-43fb-9529-d1334f4c6059', 'authenticated', 'authenticated', 'admin@cotizador.com', '$2a$10$Q3ftpiGxXHCMuIGH0Z7BI.KFU6zrVJCNv/7hL5GsDpGfJQCwS4oGO', '2026-02-14 21:12:20.675521+00', NULL, '', NULL, '', NULL, '', '', NULL, '2026-02-16 23:06:27.601263+00', '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-02-14 21:12:20.567887+00', '2026-02-23 13:19:07.510251+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
+
+
+--
+-- Data for Name: identities; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+INSERT INTO auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, id) VALUES ('2d353feb-16d5-43fb-9529-d1334f4c6059', '2d353feb-16d5-43fb-9529-d1334f4c6059', '{"sub": "2d353feb-16d5-43fb-9529-d1334f4c6059", "email": "admin@cotizador.com", "email_verified": false, "phone_verified": false}', 'email', '2026-02-14 21:12:20.639345+00', '2026-02-14 21:12:20.639754+00', '2026-02-14 21:12:20.639754+00', 'cbdaa093-acfc-4740-902e-381bbd6fc375');
+INSERT INTO auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, id) VALUES ('9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0', '9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0', '{"sub": "9eccd179-b0b6-4ee1-b37a-f9fb2e1771a0", "email": "admin@plazamayor.com", "email_verified": false, "phone_verified": false}', 'email', '2026-02-16 21:40:39.259102+00', '2026-02-16 21:40:39.259625+00', '2026-02-16 21:40:39.259625+00', '8bcc7013-a598-44c7-b9d0-77b7c0220616');
+INSERT INTO auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, id) VALUES ('1b099fcd-164b-49dc-af4a-c64f4b16961d', '1b099fcd-164b-49dc-af4a-c64f4b16961d', '{"sub": "1b099fcd-164b-49dc-af4a-c64f4b16961d", "email": "admin@casadepiedra.com", "email_verified": false, "phone_verified": false}', 'email', '2026-02-16 22:36:58.193872+00', '2026-02-16 22:36:58.193934+00', '2026-02-16 22:36:58.193934+00', '75cd4b7f-bab8-40ca-9b89-7c25fa7d08a4');
+
+
+--
+-- Data for Name: instances; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: oauth_clients; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: sessions; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+INSERT INTO auth.sessions (id, user_id, created_at, updated_at, factor_id, aal, not_after, refreshed_at, user_agent, ip, tag, oauth_client_id, refresh_token_hmac_key, refresh_token_counter, scopes) VALUES ('d4f782a5-d244-47fe-8dbc-c0b87f97e58d', '2d353feb-16d5-43fb-9529-d1334f4c6059', '2026-02-16 23:06:27.601371+00', '2026-02-23 13:19:07.516146+00', NULL, 'aal1', NULL, '2026-02-23 13:19:07.515895', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 OPR/127.0.0.0 (Edition std-2)', '172.18.0.1', NULL, NULL, NULL, NULL, NULL);
+
+
+--
+-- Data for Name: mfa_amr_claims; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+INSERT INTO auth.mfa_amr_claims (session_id, created_at, updated_at, authentication_method, id) VALUES ('d4f782a5-d244-47fe-8dbc-c0b87f97e58d', '2026-02-16 23:06:27.606452+00', '2026-02-16 23:06:27.606452+00', 'password', '6a768e2c-06a7-4597-adc5-621dab28145e');
+
+
+--
+-- Data for Name: mfa_factors; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: mfa_challenges; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: oauth_authorizations; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: oauth_client_states; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: oauth_consents; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: one_time_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: refresh_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 14, '3q4e5ufd3jto', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-16 23:06:27.604074+00', '2026-02-18 21:16:33.354873+00', NULL, 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 15, '74mph6sxiwtj', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-18 21:16:33.35702+00', '2026-02-19 19:31:28.975503+00', '3q4e5ufd3jto', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 16, 'e6qxkw7e3oit', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-19 19:31:28.990002+00', '2026-02-19 20:30:56.100923+00', '74mph6sxiwtj', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 49, 'dcfpbjjjaxj4', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-19 20:30:56.10216+00', '2026-02-19 21:29:29.407287+00', 'e6qxkw7e3oit', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 50, '7utk7armcyi2', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-19 21:29:29.408304+00', '2026-02-19 22:27:31.501047+00', 'dcfpbjjjaxj4', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 51, 'l5yahykucozd', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-19 22:27:31.509526+00', '2026-02-19 23:26:11.172535+00', '7utk7armcyi2', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 52, 'abrf43cflqhj', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-19 23:26:11.178419+00', '2026-02-20 00:25:05.88916+00', 'l5yahykucozd', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 53, 'v2z3bct5jkgf', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-20 00:25:05.892918+00', '2026-02-20 19:23:03.008477+00', 'abrf43cflqhj', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 54, 'hgyf5kivyvdg', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-20 19:23:03.009043+00', '2026-02-20 20:21:08.612398+00', 'v2z3bct5jkgf', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 55, 'mwnqnu3q7qg2', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-20 20:21:08.61288+00', '2026-02-20 21:42:23.569124+00', 'hgyf5kivyvdg', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 56, 'ksveh2nrqw2i', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-20 21:42:23.570622+00', '2026-02-21 19:22:57.422261+00', 'mwnqnu3q7qg2', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 57, 'ljoswak2laz3', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-21 19:22:57.422944+00', '2026-02-21 21:49:55.313635+00', 'ksveh2nrqw2i', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 58, 'mkdx2zykrsyo', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-21 21:49:55.318743+00', '2026-02-21 22:48:11.504011+00', 'ljoswak2laz3', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 59, 'l2qg3umyajop', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-21 22:48:11.528709+00', '2026-02-21 23:47:55.888785+00', 'mkdx2zykrsyo', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 60, 'izr2dxsja5kt', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-21 23:47:55.891354+00', '2026-02-22 00:47:12.953668+00', 'l2qg3umyajop', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 61, 'uarjxsnref6f', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-22 00:47:12.96257+00', '2026-02-22 01:45:25.376251+00', 'izr2dxsja5kt', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 62, 'ggfdncukq5ly', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-22 01:45:25.37781+00', '2026-02-22 21:58:23.088268+00', 'uarjxsnref6f', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 63, 'yuctgxr4sssv', '2d353feb-16d5-43fb-9529-d1334f4c6059', true, '2026-02-22 21:58:23.092004+00', '2026-02-23 13:19:07.503354+00', 'ggfdncukq5ly', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+INSERT INTO auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) VALUES ('00000000-0000-0000-0000-000000000000', 64, 'z265vzutskil', '2d353feb-16d5-43fb-9529-d1334f4c6059', false, '2026-02-23 13:19:07.505598+00', '2026-02-23 13:19:07.505598+00', 'yuctgxr4sssv', 'd4f782a5-d244-47fe-8dbc-c0b87f97e58d');
+
+
+--
+-- Data for Name: sso_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: saml_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: saml_relay_states; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- Data for Name: schema_migrations; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+INSERT INTO auth.schema_migrations (version) VALUES ('20171026211738');
+INSERT INTO auth.schema_migrations (version) VALUES ('20171026211808');
+INSERT INTO auth.schema_migrations (version) VALUES ('20171026211834');
+INSERT INTO auth.schema_migrations (version) VALUES ('20180103212743');
+INSERT INTO auth.schema_migrations (version) VALUES ('20180108183307');
+INSERT INTO auth.schema_migrations (version) VALUES ('20180119214651');
+INSERT INTO auth.schema_migrations (version) VALUES ('20180125194653');
+INSERT INTO auth.schema_migrations (version) VALUES ('00');
+INSERT INTO auth.schema_migrations (version) VALUES ('20210710035447');
+INSERT INTO auth.schema_migrations (version) VALUES ('20210722035447');
+INSERT INTO auth.schema_migrations (version) VALUES ('20210730183235');
+INSERT INTO auth.schema_migrations (version) VALUES ('20210909172000');
+INSERT INTO auth.schema_migrations (version) VALUES ('20210927181326');
+INSERT INTO auth.schema_migrations (version) VALUES ('20211122151130');
+INSERT INTO auth.schema_migrations (version) VALUES ('20211124214934');
+INSERT INTO auth.schema_migrations (version) VALUES ('20211202183645');
+INSERT INTO auth.schema_migrations (version) VALUES ('20220114185221');
+INSERT INTO auth.schema_migrations (version) VALUES ('20220114185340');
+INSERT INTO auth.schema_migrations (version) VALUES ('20220224000811');
+INSERT INTO auth.schema_migrations (version) VALUES ('20220323170000');
+INSERT INTO auth.schema_migrations (version) VALUES ('20220429102000');
+INSERT INTO auth.schema_migrations (version) VALUES ('20220531120530');
+INSERT INTO auth.schema_migrations (version) VALUES ('20220614074223');
+INSERT INTO auth.schema_migrations (version) VALUES ('20220811173540');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221003041349');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221003041400');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221011041400');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221020193600');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221021073300');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221021082433');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221027105023');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221114143122');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221114143410');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221125140132');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221208132122');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221215195500');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221215195800');
+INSERT INTO auth.schema_migrations (version) VALUES ('20221215195900');
+INSERT INTO auth.schema_migrations (version) VALUES ('20230116124310');
+INSERT INTO auth.schema_migrations (version) VALUES ('20230116124412');
+INSERT INTO auth.schema_migrations (version) VALUES ('20230131181311');
+INSERT INTO auth.schema_migrations (version) VALUES ('20230322519590');
+INSERT INTO auth.schema_migrations (version) VALUES ('20230402418590');
+INSERT INTO auth.schema_migrations (version) VALUES ('20230411005111');
+INSERT INTO auth.schema_migrations (version) VALUES ('20230508135423');
+INSERT INTO auth.schema_migrations (version) VALUES ('20230523124323');
+INSERT INTO auth.schema_migrations (version) VALUES ('20230818113222');
+INSERT INTO auth.schema_migrations (version) VALUES ('20230914180801');
+INSERT INTO auth.schema_migrations (version) VALUES ('20231027141322');
+INSERT INTO auth.schema_migrations (version) VALUES ('20231114161723');
+INSERT INTO auth.schema_migrations (version) VALUES ('20231117164230');
+INSERT INTO auth.schema_migrations (version) VALUES ('20240115144230');
+INSERT INTO auth.schema_migrations (version) VALUES ('20240214120130');
+INSERT INTO auth.schema_migrations (version) VALUES ('20240306115329');
+INSERT INTO auth.schema_migrations (version) VALUES ('20240314092811');
+INSERT INTO auth.schema_migrations (version) VALUES ('20240427152123');
+INSERT INTO auth.schema_migrations (version) VALUES ('20240612123726');
+INSERT INTO auth.schema_migrations (version) VALUES ('20240729123726');
+INSERT INTO auth.schema_migrations (version) VALUES ('20240802193726');
+INSERT INTO auth.schema_migrations (version) VALUES ('20240806073726');
+INSERT INTO auth.schema_migrations (version) VALUES ('20241009103726');
+INSERT INTO auth.schema_migrations (version) VALUES ('20250717082212');
+INSERT INTO auth.schema_migrations (version) VALUES ('20250731150234');
+INSERT INTO auth.schema_migrations (version) VALUES ('20250804100000');
+INSERT INTO auth.schema_migrations (version) VALUES ('20250901200500');
+INSERT INTO auth.schema_migrations (version) VALUES ('20250903112500');
+INSERT INTO auth.schema_migrations (version) VALUES ('20250904133000');
+INSERT INTO auth.schema_migrations (version) VALUES ('20250925093508');
+INSERT INTO auth.schema_migrations (version) VALUES ('20251007112900');
+INSERT INTO auth.schema_migrations (version) VALUES ('20251104100000');
+INSERT INTO auth.schema_migrations (version) VALUES ('20251111201300');
+INSERT INTO auth.schema_migrations (version) VALUES ('20251201000000');
+INSERT INTO auth.schema_migrations (version) VALUES ('20260115000000');
+INSERT INTO auth.schema_migrations (version) VALUES ('20260121000000');
+
+
+--
+-- Data for Name: sso_domains; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
 
 --
 -- Data for Name: clientes; Type: TABLE DATA; Schema: finanzas; Owner: postgres
@@ -191,6 +476,13 @@ INSERT INTO public.profiles (id, email, username, role, tenant, app_metadata, cr
 
 
 --
+-- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: supabase_auth_admin
+--
+
+SELECT pg_catalog.setval('auth.refresh_tokens_id_seq', 64, true);
+
+
+--
 -- Name: conceptos_catalogo_id_seq; Type: SEQUENCE SET; Schema: finanzas; Owner: postgres
 --
 
@@ -236,5 +528,5 @@ SELECT pg_catalog.setval('finanzas_casadepiedra.impuestos_id_seq', 1, true);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict a7jWMe59lsUrb51vP7aQqdrQfAqy1j8mFOuctbKlWXqWGlw9NUebCJBHVuaw8WZ
+\unrestrict pGrYWjkPVrcZkV65VQrcx6V6yDFBtljz1vJBbkwLljTwlKbQjjCvghQyu8Ysxbs
 
