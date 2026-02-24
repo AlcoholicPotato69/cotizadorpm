@@ -28,7 +28,7 @@
     <script>const TENANT_SCHEMA='finanzas_casadepiedra';</script>
     <script src="../js/layout.js"></script>
     
-    <nav class="bg-brand-red shadow-lg sticky top-16 z-30 border-t border-red-800">
+    <nav class="bg-brand-red shadow-lg sticky top-16 z-30 border-t border-yellow-600 transition-all duration-300">
         <div class="container mx-auto px-4 flex h-14 items-center text-white gap-2 overflow-x-auto no-scrollbar">
             <a href="catalog.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 transition whitespace-nowrap"><i class="fa-solid fa-store"></i> Catálogo</a>
             <a href="agenda.html" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase hover:bg-white/20 flex items-center gap-2 transition whitespace-nowrap"><i class="fa-solid fa-calendar-days"></i> Agenda</a>
@@ -43,7 +43,7 @@
     <main class="flex-grow container mx-auto px-4 py-8 max-w-7xl animate-enter">
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
             <h2 class="font-black text-2xl text-gray-800 uppercase tracking-tight">Cotizaciones</h2>
-            <div class="relative w-full md:w-1/3"><i class="fa-solid fa-search absolute left-3 top-3.5 text-gray-400 text-xs"></i><input type="text" id="search-orders" placeholder="Buscar por cliente..." class="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-full text-sm outline-none focus:border-brand-red focus:ring-4 focus:ring-red-50 transition"></div>
+            <div class="relative w-full md:w-1/2"><i class="fa-solid fa-search absolute left-3 top-3.5 text-gray-400 text-xs"></i><input type="text" id="search-orders" placeholder="Buscar por cliente, o folio unificado..." class="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-full text-sm outline-none focus:border-brand-red focus:ring-4 focus:ring-red-50 transition"></div>
         </div>
         
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -67,10 +67,10 @@
     </main>
     
     <div id="order-edit-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm animate-enter">
-        <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh]">
+        <div class="bg-white w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh]">
             <div class="bg-brand-dark p-4 flex justify-between items-center text-white shrink-0">
                 <h3 class="font-bold uppercase text-xs tracking-wider">Detalle de Cotización</h3>
-                <button onclick="window.closeModal('order-edit-modal')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition"><i class="fa-solid fa-times"></i></button>
+                <button onclick="window.askCloseEditModal()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition"><i class="fa-solid fa-times"></i></button>
             </div>
             
             <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
@@ -118,11 +118,57 @@
                         </div>
                     </div>
 
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <h4 class="font-bold text-xs uppercase text-brand-red mb-3 border-b pb-1">Logística y Precios Especiales</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+                            <div class="group">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Horario</label>
+                                <select id="oed-horario" class="w-full border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none focus:border-brand-red bg-white transition" onchange="window.toggleCustomHorario('oed'); window.recalcTotal()"></select>
+                            </div>
+                            <div class="group">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Días Montaje</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="oed-premontaje" value="0" min="0" class="w-12 border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none focus:border-brand-red transition text-center" oninput="window.handleMontajeInput('oed')">
+                                    <button id="oed-btn-montaje" onclick="window.abrirModalMontaje('oed')" class="hidden bg-brand-red hover:bg-red-700 text-white px-2 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-calendar-plus text-xs"></i></button>
+                                    <span class="text-gray-400 text-[10px] font-bold ml-1">x$</span>
+                                    <input type="number" id="oed-premontaje-price" value="0" min="0" class="w-full border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none focus:border-brand-red transition text-right bg-white" oninput="if(this.value<0)this.value=0; window.recalcTotal()">
+                                </div>
+                                <p id="oed-lbl-fechas-montaje" class="text-[9px] font-bold text-brand-red mt-1 hidden"></p>
+                            </div>
+                            <div class="group">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Horas Extras</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="oed-horas" value="0" min="0" class="w-12 border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none focus:border-brand-red transition text-center" oninput="window.recalcTotal()">
+                                    <span class="text-gray-400 text-[10px] font-bold">x$</span>
+                                    <input type="number" id="oed-horas-price" value="0" min="0" class="w-full border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none focus:border-brand-red transition text-right bg-white" oninput="if(this.value<0)this.value=0; window.recalcTotal()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="oed-horario-custom" class="hidden bg-yellow-50/80 p-3 rounded-lg border border-yellow-200 shadow-inner mt-4 animate-enter">
+                            <p class="text-[10px] font-bold text-yellow-700 uppercase mb-2"><i class="fa-solid fa-clock mr-1"></i> Configurar Horario Personalizado</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold text-gray-500 uppercase w-8">De:</span>
+                                    <input type="time" id="oed-horario-start" class="w-full border border-gray-200 rounded p-2 text-xs outline-none focus:border-brand-red bg-white" onchange="window.recalcTotal()">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold text-gray-500 uppercase w-8">A:</span>
+                                    <input type="time" id="oed-horario-end" class="w-full border border-gray-200 rounded p-2 text-xs outline-none focus:border-brand-red bg-white" onchange="window.recalcTotal()">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold text-gray-500 uppercase">Costo $:</span>
+                                    <input type="number" id="oed-horario-price" placeholder="0.00" min="0" class="w-full border border-yellow-300 rounded p-2 text-xs outline-none focus:border-brand-red bg-white font-bold text-right text-brand-dark" oninput="if(this.value<0)this.value=0; window.recalcTotal()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div>
-                        <h4 class="font-bold text-xs uppercase text-gray-600 mb-2 flex justify-between">Conceptos Adicionales 
+                        <h4 class="font-bold text-xs uppercase text-gray-600 mb-2 flex justify-between">Conceptos Libres (Extras)
                             <div class="flex gap-2">
                                 <select id="new-concept-select" class="border rounded text-[10px] px-2 py-1 w-40"></select>
-                                <input id="new-concept-amount" type="number" placeholder="$" class="border rounded text-[10px] px-2 py-1 w-20">
+                                <input id="new-concept-amount" type="number" min="0" placeholder="$" class="border rounded text-[10px] px-2 py-1 w-20">
                                 <button onclick="window.addConceptRow()" class="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-plus"></i></button>
                             </div>
                         </h4>
@@ -133,35 +179,73 @@
                     </div>
                 </div>
 
-                <div class="w-full md:w-1/3 bg-gray-100 border-l border-gray-200 p-6 flex flex-col justify-between shadow-inner">
-                    <div class="space-y-4">
-                        <h4 class="font-black text-sm uppercase text-gray-700">Resumen Financiero</h4>
-                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-2">
-                            <div class="flex justify-between text-xs text-gray-500"><span>Subtotal (Renta + Conceptos)</span><span class="font-bold" id="lbl-subtotal">$0.00</span></div>
-                            <div class="flex justify-between items-center text-xs text-gray-500">
-                                <span>Ajuste Global</span>
-                                <div class="flex items-center gap-1">
-                                    <select id="oed-adj-type" onchange="window.recalcTotal()" class="border rounded p-0.5 text-[10px]"><option value="ninguno">-</option><option value="descuento">Desc</option><option value="aumento">Aum</option></select>
-                                    <input id="oed-adj-val" onchange="window.recalcTotal()" type="number" class="w-12 border rounded p-0.5 text-[10px] text-right" placeholder="0">
-                                    <select id="oed-adj-unit" onchange="window.recalcTotal()" class="border rounded p-0.5 text-[10px]"><option value="fixed">$</option><option value="percent">%</option></select>
-                                </div>
-                            </div>
-                            <div class="flex justify-between text-xs text-gray-500 font-bold border-b border-dashed pb-2"><span>Total Ajuste</span><span id="lbl-adjustment">$0.00</span></div>
-                            
-                            <div class="pt-1"><p class="text-[10px] font-bold uppercase text-gray-400 mb-1">Impuestos</p><div id="oed-taxes-list" class="space-y-1"></div></div>
-                            <div id="oed-tax-summary-display" class="pt-2 border-t border-gray-100 space-y-1"></div>
-                            
-                            <div class="pt-4 mt-2 border-t border-gray-200">
-                                <p class="text-[10px] font-black uppercase text-gray-400 text-right">Total Neto</p>
-                                <input id="oed-price" readonly class="w-full text-right text-3xl font-black bg-transparent outline-none text-gray-800" value="0.00">
+                <div class="w-full md:w-1/3 bg-gray-100 border-l border-gray-200 p-6 flex flex-col justify-between shadow-inner overflow-y-auto custom-scroll">
+                    <div class="space-y-6">
+                        
+                        <div>
+                            <h4 class="font-black text-sm uppercase text-gray-700 mb-3"><i class="fa-solid fa-list-check text-brand-red mr-1"></i> Resumen del Evento</h4>
+                            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-3 text-xs text-gray-600">
+                                <div class="flex justify-between items-center border-b border-gray-50 pb-2"><span class="font-bold text-gray-400">Fechas</span><span id="sum-dates" class="font-bold text-right text-gray-800">--</span></div>
+                                <div class="flex justify-between items-center border-b border-gray-50 pb-2"><span class="font-bold text-gray-400">Asistentes</span><span id="sum-guests" class="font-bold text-right text-gray-800">--</span></div>
+                                <div class="flex justify-between items-center border-b border-gray-50 pb-2"><span class="font-bold text-gray-400">Horario</span><span id="sum-schedule" class="font-bold text-right text-gray-800 truncate max-w-[140px]">--</span></div>
+                                <div class="flex justify-between items-center border-b border-gray-50 pb-2"><span class="font-bold text-gray-400">Montaje</span><span id="sum-montaje" class="font-bold text-right text-gray-800 text-[10px]">--</span></div>
+                                <div class="flex justify-between items-center"><span class="font-bold text-gray-400">Horas Extras</span><span id="sum-hextras" class="font-bold text-right text-gray-800">--</span></div>
                             </div>
                         </div>
+
+                        <div>
+                            <h4 class="font-black text-sm uppercase text-gray-700 mb-3"><i class="fa-solid fa-calculator text-brand-red mr-1"></i> Resumen Financiero</h4>
+                            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-2">
+                                <div class="flex justify-between text-xs text-gray-500"><span>Renta Base + Logística</span><span class="font-bold" id="lbl-subtotal-base">$0.00</span></div>
+                                
+                                <div id="oed-summary-concepts" class="space-y-1 border-b border-dashed border-gray-200 pb-2 mb-2"></div>
+                                
+                                <div class="flex justify-between items-center text-xs text-gray-500">
+                                    <span>Ajuste Global</span>
+                                    <div class="flex items-center gap-1">
+                                        <select id="oed-adj-type" onchange="window.recalcTotal()" class="border rounded p-0.5 text-[10px]"><option value="ninguno">-</option><option value="descuento">Desc</option><option value="aumento">Aum</option></select>
+                                        <input id="oed-adj-val" onchange="window.recalcTotal()" type="number" class="w-12 border rounded p-0.5 text-[10px] text-right" placeholder="0">
+                                        <select id="oed-adj-unit" onchange="window.recalcTotal()" class="border rounded p-0.5 text-[10px]"><option value="fixed">$</option><option value="percent">%</option></select>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between text-xs text-gray-500 font-bold border-b border-dashed pb-2"><span>Total Ajuste</span><span id="lbl-adjustment">$0.00</span></div>
+                                
+                                <div class="pt-1"><p class="text-[10px] font-bold uppercase text-gray-400 mb-1">Impuestos</p><div id="oed-taxes-list" class="space-y-1"></div></div>
+                                <div id="oed-tax-summary-display" class="pt-2 border-t border-gray-100 space-y-1"></div>
+                                
+                                <div class="pt-4 mt-2 border-t border-gray-200">
+                                    <p class="text-[10px] font-black uppercase text-gray-400 text-right">Total Neto</p>
+                                    <input id="oed-price" readonly class="w-full text-right text-3xl font-black bg-transparent outline-none text-gray-800" value="0.00">
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="space-y-3 mt-6">
-                        <button id="btn-save-progress" onclick="window.attemptSaveOrder()" class="w-full bg-brand-dark text-white py-3 rounded-xl font-bold uppercase text-xs shadow-lg hover:bg-gray-800 transition">Guardar Cambios</button>
+                    <div class="mt-6">
+                        <button id="btn-save-progress" onclick="window.processSaveOrder()" class="w-full bg-brand-dark text-white py-3 rounded-xl font-bold uppercase text-xs shadow-lg hover:bg-gray-800 transition">Guardar Directamente</button>
+                        <button id="btn-save-approve" onclick="window.attemptSaveOrder()" class="w-full bg-brand-red text-white py-3 rounded-xl font-bold uppercase text-xs shadow-lg hover:bg-red-700 transition mt-2">Guardar y Aprobar</button>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="montaje-modal" class="fixed inset-0 bg-black/80 z-[200] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 animate-enter">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg text-gray-800">Días de Montaje</h3>
+                <button onclick="document.getElementById('montaje-modal').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="text-xs font-medium text-gray-500 mb-6">Selecciona <span class="font-black text-brand-red text-sm" id="montaje-limit-num">0</span> fecha(s) previa(s) al evento.</p>
+            
+            <div class="flex gap-2 mb-6">
+                <input type="date" id="montaje-date-input" class="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none focus:border-brand-red transition font-medium text-gray-700">
+                <button onclick="window.addMontajeDate()" class="bg-brand-dark hover:bg-black text-brand-red px-5 rounded-lg font-bold transition shadow-sm"><i class="fas fa-plus"></i></button>
+            </div>
+            
+            <ul id="montaje-dates-list" class="space-y-2 mb-8 max-h-40 overflow-y-auto custom-scroll pr-2"></ul>
+            
+            <button onclick="window.confirmMontajeDates()" class="w-full bg-brand-red hover:bg-red-700 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-lg hover:scale-105">Confirmar Selección</button>
         </div>
     </div>
 
@@ -201,17 +285,16 @@
         </div>
     </div>
 
-    <div id="generic-confirm-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-4">
+    <div id="generic-confirm-modal" class="fixed inset-0 bg-black/80 z-[300] hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 text-center">
-            <i class="fa-solid fa-triangle-exclamation text-brand-red text-4xl mb-4"></i>
             <h3 class="font-bold text-lg mb-2 text-gray-800" id="confirm-title">¿Confirmar Acción?</h3>
             <div class="flex justify-center gap-3 mt-6">
-                <button onclick="window.closeModal('generic-confirm-modal')" class="text-gray-500 hover:text-gray-800 text-xs font-bold px-4">Cancelar</button>
+                <button id="btn-cancel-action" class="text-gray-500 hover:text-gray-800 text-xs font-bold px-4 transition">Cancelar</button>
                 <button id="btn-confirm-action" class="bg-brand-dark text-white px-6 py-2 rounded-xl font-bold text-xs uppercase shadow-lg hover:bg-black transition">Confirmar</button>
             </div>
         </div>
     </div>
-    <div id="toast-container" class="fixed top-20 right-4 z-[110] flex flex-col items-end pointer-events-none"></div>
+    <div id="toast-container" class="fixed top-20 right-4 z-[310] flex flex-col items-end pointer-events-none"></div>
     <script src="orders.js"></script>
 </body>
 </html>

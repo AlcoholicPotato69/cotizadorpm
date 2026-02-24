@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict toXQqanF3Do4u0w9du7qtKILynHbh9XLvdwvE3H7t5jmGwKhfSENLxzVz7kVyYx
+\restrict BTbkMXukVolamhfDkxffCJcB7LmZk7PoTXN4lZyscGflhvhoyazAIxYmEDCj182
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -1455,7 +1455,8 @@ CREATE TABLE finanzas_casadepiedra.espacios (
     color character varying DEFAULT '#374151'::character varying,
     precios_por_dia jsonb DEFAULT '{"lunes": 0, "jueves": 0, "martes": 0, "sabado": 0, "domingo": 0, "viernes": 0, "miercoles": 0}'::jsonb,
     dias_bloqueados jsonb DEFAULT '[]'::jsonb,
-    etiquetas jsonb DEFAULT '[]'::jsonb
+    etiquetas jsonb DEFAULT '[]'::jsonb,
+    config_b2b jsonb DEFAULT '{}'::jsonb
 );
 
 ALTER TABLE ONLY finanzas_casadepiedra.espacios FORCE ROW LEVEL SECURITY;
@@ -2761,5 +2762,5 @@ ALTER TABLE storage.vector_indexes ENABLE ROW LEVEL SECURITY;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict toXQqanF3Do4u0w9du7qtKILynHbh9XLvdwvE3H7t5jmGwKhfSENLxzVz7kVyYx
+\unrestrict BTbkMXukVolamhfDkxffCJcB7LmZk7PoTXN4lZyscGflhvhoyazAIxYmEDCj182
 
